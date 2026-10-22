@@ -26,12 +26,13 @@ The system is a three-tier application.
  
 | Tier | Component | Technology |
 |---|---|---|
-| 1 | Public website for clients | React |
+| 1 | Public website for clients | Astro with React islands |
 | 1 | Admin dashboard for employees | Blazor |
 | 2 | Business logic server exposing a REST API | .NET |
-| 3 | Data server and database | PostgreSQL |
+| 3 | Data server communicating with the .NET server over gRPC | Java |
+| 3 | Database | PostgreSQL |
  
-Both clients communicate with the business logic server over REST. The business logic server is the only component that talks to the data server.
+Both clients communicate with the business logic server over REST. The business logic server is the only component that talks to the data server, which it does over gRPC.
  
  
 ## Project scope

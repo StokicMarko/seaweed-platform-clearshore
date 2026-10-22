@@ -1,0 +1,24 @@
+{
+  "site": {
+    "name": "Seaweed by DESMI"
+  },
+  "nav": {
+    "home": "Inicio",
+    "equipment": "Equipos",
+    "references": "Referencias",
+    "techInfo": "Información técnica",
+    "media": "Multimedia",
+    "news": "Noticias",
+    "contact": "Contacto"
+  },
+  "language": {
+    "label": "Idioma",
+    "en": "Inglés",
+    "es": "Español",
+    "fr": "Francés"
+  },
+  "footer": {
+    "contact": "Contacto",
+    "rights": "Todos los derechos reservados"
+  }
+}
