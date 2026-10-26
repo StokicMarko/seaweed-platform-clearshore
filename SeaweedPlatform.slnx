@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/backend/">
+    <Project Path="backend/Backend.csproj" />
+  </Folder>
   <Folder Name="/dashboard/">
     <Project Path="dashboard/Dashboard.csproj" />
   </Folder>

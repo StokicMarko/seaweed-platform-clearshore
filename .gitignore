@@ -483,3 +483,6 @@ $RECYCLE.BIN/
 
 .idea/
 .claude/
+
+# Maven
+target/
