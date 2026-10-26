@@ -1,0 +1,5 @@
+<Solution>
+  <Folder Name="/dashboard/">
+    <Project Path="dashboard/Dashboard.csproj" />
+  </Folder>
+</Solution>
