@@ -1,70 +1,52 @@
 syntax = "proto3";
 
-package media;
+package clearshore;
 
-option java_multiple_files = true;
-option java_package = "com.clearshore.data.grpc";
-option csharp_namespace = "Backend.Grpc";
+import "google/protobuf/timestamp.proto";
+import "common.proto";
+import "machine.proto";
+
+option java_package = "com.clearshore.data.generated";
+option java_outer_classname = "MediaProto";
+option csharp_namespace = "GrpcRepositories.Generated";
 
 service MediaData {
-  rpc SaveMedia (stream SaveMediaChunk) returns (MediaItem);
-  rpc UpdateMedia (UpdateMediaRequest) returns (MediaItem);
-  rpc ListMedia (ListMediaRequest) returns (ListMediaReply);
-  rpc GetMedia (MediaIdRequest) returns (MediaItem);
-  rpc DeleteMedia (MediaIdRequest) returns (DeleteReply);
+  rpc GetMany (GetManyMediaRequest) returns (MediaList);
+  rpc GetSingle (MediaId) returns (Media);
+  rpc ReadFile (MediaId) returns (stream FileChunk);
 }
 
-message SaveMediaChunk {
-  oneof data {
-    MediaMetadata metadata = 1;
-    bytes chunk = 2;
-  }
+enum MediaType {
+  MEDIA_TYPE_UNSPECIFIED = 0;
+  MEDIA_TYPE_IMAGE = 1;
+  MEDIA_TYPE_VIDEO = 2;
+  MEDIA_TYPE_MODEL_3D = 3;
 }
 
-message MediaMetadata {
-  string title_en = 1;
-  string title_fr = 2;
-  string title_es = 3;
-  string description_en = 4;
-  string description_fr = 5;
-  string description_es = 6;
-  string file_name = 7;
-  string content_type = 8;
-  string machine = 9;
-}
-
-message UpdateMediaRequest {
+message Media {
   int32 id = 1;
-  MediaMetadata metadata = 2;
+  Machine machine = 2;
+  MediaType media_type = 3;
+  LocalizedText title = 4;
+  LocalizedText description = 5;
+  string original_file_name = 6;
+  string content_type = 7;
+  google.protobuf.Timestamp published_at = 8;
+  google.protobuf.Timestamp updated_at = 9;
 }
 
-message MediaItem {
-  int32 id = 1;
-  string title_en = 2;
-  string title_fr = 3;
-  string title_es = 4;
-  string description_en = 5;
-  string description_fr = 6;
-  string description_es = 7;
-  string file_name = 8;
-  string url = 9;
-  string content_type = 10;
-  string created_at = 11;
-  string machine = 12;
+message GetManyMediaRequest {
+  optional string machine_code = 1;
 }
 
-message ListMediaRequest {
-  string machine = 1;
-}
-
-message ListMediaReply {
-  repeated MediaItem items = 1;
-}
-
-message MediaIdRequest {
+message MediaId {
   int32 id = 1;
 }
 
-message DeleteReply {
-  bool success = 1;
+message MediaList {
+  repeated Media items = 1;
+}
+
+message FileChunk {
+  bytes data = 1;
 }

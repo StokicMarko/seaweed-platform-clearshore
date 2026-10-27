@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package clearshore;
+
+option java_package = "com.clearshore.data.generated";
+option java_outer_classname = "CommonProto";
+option csharp_namespace = "GrpcRepositories.Generated";
+
+message LocalizedText {
+  string en = 1;
+  string es = 2;
+  string fr = 3;
+}
