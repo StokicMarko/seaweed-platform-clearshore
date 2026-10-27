@@ -1,21 +1,23 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
-    <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <UserSecretsId>30bb2458-6fd9-47f0-83e2-b16f5d71c655</UserSecretsId>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Google.Protobuf" Version="3.36.2" />
     <PackageReference Include="Grpc.Net.ClientFactory" Version="2.84.0" />
     <PackageReference Include="Grpc.Tools" Version="2.85.0" PrivateAssets="All" />
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.11" />
   </ItemGroup>
 
   <ItemGroup>
-    <Protobuf Include="..\proto\media.proto" GrpcServices="Client" Link="Protos\media.proto" />
+    <Protobuf Include="..\..\proto\*.proto" ProtoRoot="..\..\proto" GrpcServices="Client" Link="Protos\%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\RepositoryContracts\RepositoryContracts.csproj" />
   </ItemGroup>
 
 </Project>
