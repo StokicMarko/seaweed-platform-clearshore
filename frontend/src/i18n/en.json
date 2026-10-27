@@ -22,6 +22,7 @@
     "rights": "All rights reserved"
   },
   "media": {
-    "loadError": "Could not load media"
+    "loadError": "Could not load media",
+    "empty": "No media yet"
   }
 }

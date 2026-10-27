@@ -22,6 +22,7 @@
     "rights": "Tous droits réservés"
   },
   "media": {
-    "loadError": "Impossible de charger les médias"
+    "loadError": "Impossible de charger les médias",
+    "empty": "Aucun média pour le moment"
   }
 }

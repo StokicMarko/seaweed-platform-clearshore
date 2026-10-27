@@ -1,14 +1,16 @@
+import type { LocalizedText } from './localized-text';
+import type { Machine } from './machine';
+
+export type MediaType = 'Image' | 'Video' | 'Model3D';
+
 export interface Media {
   id: number;
-  machine: string | null;
-  titleEn: string;
-  titleFr: string;
-  titleEs: string;
-  descriptionEn: string | null;
-  descriptionFr: string | null;
-  descriptionEs: string | null;
+  machine: Machine | null;
+  mediaType: MediaType;
+  title: LocalizedText;
+  description: LocalizedText | null;
   fileName: string;
-  url: string;
   contentType: string;
-  createdAt: string;
+  fileUrl: string;
+  publishedAt: string;
 }

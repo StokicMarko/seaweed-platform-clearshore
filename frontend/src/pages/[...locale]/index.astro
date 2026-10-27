@@ -1,0 +1,15 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { messages, toLocale } from '../../i18n';
+
+const locale = toLocale(Astro.params.locale);
+if (!locale) {
+  return new Response(null, { status: 404 });
+}
+
+const t = messages[locale];
+---
+
+<BaseLayout locale={locale} title={t.nav.home}>
+  <h1>{t.site.name}</h1>
+</BaseLayout>
