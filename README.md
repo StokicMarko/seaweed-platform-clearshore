@@ -18,7 +18,7 @@ This project gives DESMI Seaweed its own branded online presence and a controlle
 **Admin dashboard for employees**
  
 - Create and edit website content without outside technical help
-- Approval workflow: draft, pending, approved, live
+- Approval workflow: draft, pending, then published or rejected by the Main Admin
 - Nothing is published without review
 ## Architecture
  
@@ -33,7 +33,34 @@ The system is a three-tier application.
 | 3 | Database | PostgreSQL |
  
 Both clients communicate with the business logic server over REST. The business logic server is the only component that talks to the data server, which it does over gRPC.
- 
+
+Business rules live only in the .NET server. The Java server stores and reads data and owns the uploaded files.
+
+## Repository layout
+
+| Folder | What it is |
+|---|---|
+| `database/` | `schema.sql` (tables, constraints, totals view) and `seed.sql` (countries, machines) |
+| `proto/` | gRPC contracts, one file per service, compiled by both Maven and MSBuild |
+| `data/` | Java data server: `entity`, `repository` (Spring Data JPA), `service` (gRPC services), `mapper`, `storage` |
+| `backend/Entities/` | .NET domain classes |
+| `backend/RepositoryContracts/` | Repository interfaces the WebApi depends on |
+| `backend/GrpcRepositories/` | Repository implementations that call the Java server over gRPC |
+| `backend/WebApi/` | REST controllers, DTO mapping, error handling |
+| `shared/ApiContracts/` | DTOs shared by the WebApi and the dashboard |
+| `dashboard/` | Blazor Server dashboard, one `IXService` and `HttpXService` per resource |
+| `frontend/` | Astro public site: `layouts`, `pages/[...locale]`, `components`, `lib/api.ts`, `i18n`, `types` |
+
+## Running locally
+
+1. **Database.** Create a PostgreSQL database named `sep3`, then run `database/schema.sql` and `database/seed.sql` on it. Everything is created in the schema `sep3`.
+2. **Data server.** Open `data/` in IntelliJ and run `DataApplication`. It serves gRPC on port 9090 and stores uploaded files in `media-files/`. Connection settings are in `data/src/main/resources/application.properties`.
+3. **Business logic server.** `dotnet run --project backend/WebApi --launch-profile http` serves the REST API on http://localhost:5242. `backend/WebApi/WebApi.http` has a request for every endpoint.
+4. **Dashboard.** `dotnet run --project dashboard --launch-profile http` serves http://localhost:5094.
+5. **Public site.** In `frontend/`, run `npm install` once, then `npm run dev` for http://localhost:4321. Set `BACKEND_URL` if the API is not on http://localhost:5242.
+
+Use the `http` launch profiles: the `https` ones redirect, and Node does not trust the .NET development certificate.
+
  
 ## Project scope
  
