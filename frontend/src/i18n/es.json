@@ -20,5 +20,8 @@
   "footer": {
     "contact": "Contacto",
     "rights": "Todos los derechos reservados"
+  },
+  "media": {
+    "loadError": "No se pudo cargar el contenido multimedia"
   }
 }

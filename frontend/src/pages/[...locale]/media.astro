@@ -1,0 +1,42 @@
+---
+import MediaList from '../../components/MediaList';
+import { messages, type Locale } from '../../i18n';
+import type { Media } from '../../types/media';
+
+const locale = (Astro.params.locale ?? 'en') as Locale;
+
+if (!(locale in messages)) {
+	return new Response(null, { status: 404 });
+}
+
+const t = messages[locale];
+const backendUrl = import.meta.env.BACKEND_URL ?? 'http://localhost:5242';
+
+let items: Media[] = [];
+let failed = false;
+
+try {
+	const response = await fetch(`${backendUrl}/api/media`);
+	if (!response.ok) {
+		throw new Error(`Backend returned ${response.status}`);
+	}
+	items = await response.json();
+} catch {
+	failed = true;
+}
+---
+
+<html lang={locale}>
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="icon" href="/favicon.ico" />
+		<meta name="viewport" content="width=device-width" />
+		<meta name="generator" content={Astro.generator} />
+		<title>{t.nav.media}</title>
+	</head>
+	<body>
+		<h1>{t.nav.media}</h1>
+		{failed ? <p>{t.media.loadError}</p> : <MediaList items={items} locale={locale} />}
+	</body>
+</html>

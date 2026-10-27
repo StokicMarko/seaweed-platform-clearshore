@@ -20,5 +20,8 @@
   "footer": {
     "contact": "Contact",
     "rights": "Tous droits réservés"
+  },
+  "media": {
+    "loadError": "Impossible de charger les médias"
   }
 }
