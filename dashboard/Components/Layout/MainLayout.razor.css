@@ -1,3 +1,11 @@
+nav ::deep a {
+    margin-right: 1rem;
+}
+
+nav ::deep a.active {
+    font-weight: bold;
+}
+
 #blazor-error-ui {
     color-scheme: light only;
     background: lightyellow;

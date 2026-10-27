@@ -1,0 +1,64 @@
+@page "/media"
+@inject MediaClient Media
+
+<PageTitle>Media</PageTitle>
+
+<h1>Media</h1>
+
+@if (failed)
+{
+    <p>Could not load media.</p>
+}
+else if (items is null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <table>
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Machine</th>
+                <th>Title (EN)</th>
+                <th>Title (FR)</th>
+                <th>Title (ES)</th>
+                <th>File</th>
+                <th>Type</th>
+                <th>Created</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in items)
+            {
+                <tr>
+                    <td>@item.Id</td>
+                    <td>@item.Machine</td>
+                    <td>@item.TitleEn</td>
+                    <td>@item.TitleFr</td>
+                    <td>@item.TitleEs</td>
+                    <td><a href="@item.Url">@item.FileName</a></td>
+                    <td>@item.ContentType</td>
+                    <td>@item.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<MediaItem>? items;
+    private bool failed;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            items = await Media.GetAllAsync();
+        }
+        catch (HttpRequestException)
+        {
+            failed = true;
+        }
+    }
+}
