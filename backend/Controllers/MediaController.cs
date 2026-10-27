@@ -1,48 +1,43 @@
-using Backend.Models;
+using System.Globalization;
+using Backend.Grpc;
+using Grpc.Core;
 using Microsoft.AspNetCore.Mvc;
-using Npgsql;
+using GrpcMediaItem = Backend.Grpc.MediaItem;
+using MediaItem = Backend.Models.MediaItem;
 
 namespace Backend.Controllers;
 
 [ApiController]
 [Route("api/media")]
-public class MediaController(NpgsqlDataSource dataSource) : ControllerBase
+public class MediaController(MediaData.MediaDataClient dataClient) : ControllerBase
 {
-    private const string Query = """
-        SELECT id, machine, title_en, title_fr, title_es,
-               description_en, description_fr, description_es,
-               file_name, url, content_type, created_at
-        FROM sep3.media
-        ORDER BY id
-        """;
-
     [HttpGet]
-    public async Task<List<MediaItem>> GetAll(CancellationToken cancellationToken)
+    public async Task<ActionResult<List<MediaItem>>> GetAll(CancellationToken cancellationToken)
     {
-        await using var command = dataSource.CreateCommand(Query);
-        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
-
-        var items = new List<MediaItem>();
-        while (await reader.ReadAsync(cancellationToken))
+        try
         {
-            items.Add(new MediaItem(
-                reader.GetInt32(0),
-                GetNullableString(reader, 1),
-                reader.GetString(2),
-                reader.GetString(3),
-                reader.GetString(4),
-                GetNullableString(reader, 5),
-                GetNullableString(reader, 6),
-                GetNullableString(reader, 7),
-                reader.GetString(8),
-                reader.GetString(9),
-                reader.GetString(10),
-                reader.GetFieldValue<DateTimeOffset>(11)));
+            var reply = await dataClient.ListMediaAsync(new ListMediaRequest(), cancellationToken: cancellationToken);
+            return reply.Items.Select(ToModel).ToList();
         }
-
-        return items;
+        catch (RpcException)
+        {
+            return StatusCode(StatusCodes.Status502BadGateway);
+        }
     }
 
-    private static string? GetNullableString(NpgsqlDataReader reader, int ordinal) =>
-        reader.IsDBNull(ordinal) ? null : reader.GetString(ordinal);
+    private static MediaItem ToModel(GrpcMediaItem item) => new(
+        item.Id,
+        NullIfEmpty(item.Machine),
+        item.TitleEn,
+        item.TitleFr,
+        item.TitleEs,
+        NullIfEmpty(item.DescriptionEn),
+        NullIfEmpty(item.DescriptionFr),
+        NullIfEmpty(item.DescriptionEs),
+        item.FileName,
+        item.Url,
+        item.ContentType,
+        DateTimeOffset.Parse(item.CreatedAt, CultureInfo.InvariantCulture));
+
+    private static string? NullIfEmpty(string value) => value.Length == 0 ? null : value;
 }

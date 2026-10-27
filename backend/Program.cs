@@ -1,11 +1,9 @@
-using Npgsql;
+using Backend.Grpc;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var connectionString = builder.Configuration.GetConnectionString("Seaweed")
-    ?? throw new InvalidOperationException("ConnectionStrings:Seaweed is not configured");
-
-builder.Services.AddSingleton(NpgsqlDataSource.Create(connectionString));
+builder.Services.AddGrpcClient<MediaData.MediaDataClient>(options =>
+    options.Address = new Uri(builder.Configuration["DataServer:Address"]!));
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
