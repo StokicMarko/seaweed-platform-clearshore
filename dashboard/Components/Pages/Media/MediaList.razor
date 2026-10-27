@@ -1,0 +1,68 @@
+@page "/media"
+@inject IMediaService MediaService
+
+<PageTitle>Media</PageTitle>
+
+<h1>Media</h1>
+
+@if (errorMessage is not null)
+{
+    <p>Could not load media: @errorMessage</p>
+}
+else if (media is null)
+{
+    <p>Loading...</p>
+}
+else if (media.Count == 0)
+{
+    <p>No media published yet.</p>
+}
+else
+{
+    <table>
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Machine</th>
+                <th>Type</th>
+                <th>Title (EN)</th>
+                <th>Title (ES)</th>
+                <th>Title (FR)</th>
+                <th>File</th>
+                <th>Published</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (MediaDto item in media)
+            {
+                <tr>
+                    <td>@item.Id</td>
+                    <td>@item.Machine?.Name</td>
+                    <td>@item.MediaType</td>
+                    <td>@item.Title.En</td>
+                    <td>@item.Title.Es</td>
+                    <td>@item.Title.Fr</td>
+                    <td><a href="@MediaService.GetFileUrl(item)" target="_blank">@item.FileName</a></td>
+                    <td>@item.PublishedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<MediaDto>? media;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            media = await MediaService.GetManyAsync();
+        }
+        catch (Exception e)
+        {
+            errorMessage = e.Message;
+        }
+    }
+}
