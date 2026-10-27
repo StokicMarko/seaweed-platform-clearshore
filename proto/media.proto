@@ -1,0 +1,70 @@
+syntax = "proto3";
+
+package media;
+
+option java_multiple_files = true;
+option java_package = "com.clearshore.data.grpc";
+option csharp_namespace = "Backend.Grpc";
+
+service MediaData {
+  rpc SaveMedia (stream SaveMediaChunk) returns (MediaItem);
+  rpc UpdateMedia (UpdateMediaRequest) returns (MediaItem);
+  rpc ListMedia (ListMediaRequest) returns (ListMediaReply);
+  rpc GetMedia (MediaIdRequest) returns (MediaItem);
+  rpc DeleteMedia (MediaIdRequest) returns (DeleteReply);
+}
+
+message SaveMediaChunk {
+  oneof data {
+    MediaMetadata metadata = 1;
+    bytes chunk = 2;
+  }
+}
+
+message MediaMetadata {
+  string title_en = 1;
+  string title_fr = 2;
+  string title_es = 3;
+  string description_en = 4;
+  string description_fr = 5;
+  string description_es = 6;
+  string file_name = 7;
+  string content_type = 8;
+  string machine = 9;
+}
+
+message UpdateMediaRequest {
+  int32 id = 1;
+  MediaMetadata metadata = 2;
+}
+
+message MediaItem {
+  int32 id = 1;
+  string title_en = 2;
+  string title_fr = 3;
+  string title_es = 4;
+  string description_en = 5;
+  string description_fr = 6;
+  string description_es = 7;
+  string file_name = 8;
+  string url = 9;
+  string content_type = 10;
+  string created_at = 11;
+  string machine = 12;
+}
+
+message ListMediaRequest {
+  string machine = 1;
+}
+
+message ListMediaReply {
+  repeated MediaItem items = 1;
+}
+
+message MediaIdRequest {
+  int32 id = 1;
+}
+
+message DeleteReply {
+  bool success = 1;
+}
