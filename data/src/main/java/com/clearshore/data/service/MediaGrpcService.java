@@ -23,27 +23,46 @@ public class MediaGrpcService extends MediaDataGrpc.MediaDataImplBase {
 
     private static final int CHUNK_SIZE = 64 * 1024;
 
-    private final MediaRepository mediaRepository;
-    private final FileStorage fileStorage;
+    private final MediaService mediaService;
 
-    public MediaGrpcService(MediaRepository mediaRepository, FileStorage fileStorage) {
+   /** private final MediaRepository mediaRepository;
+    private final FileStorage fileStorage; **/
+
+   /** public MediaGrpcService(MediaRepository mediaRepository, FileStorage fileStorage) {
         this.mediaRepository = mediaRepository;
         this.fileStorage = fileStorage;
+    } **/
+
+    public MediaGrpcService(MediaService mediaService)
+    {
+        this.mediaService = mediaService;
     }
+
 
     @Override
     public void getMany(MediaProto.GetManyMediaRequest request,
                         StreamObserver<MediaProto.MediaList> responseObserver) {
-        List<Media> media = request.hasMachineCode()
+        /** List<Media> media = request.hasMachineCode()
                 ? mediaRepository.findByMachineCodeOrderByPublishedAtDesc(request.getMachineCode())
                 : mediaRepository.findAllByOrderByPublishedAtDesc();
+        responseObserver.onNext(MediaMapper.toProtoList(media));
+        responseObserver.onCompleted(); **/
+
+        String machineCode = request.hasMachineCode() ? request.getMachineCode(): null;
+        List<Media> media = mediaService.getMany(machineCode);
+
         responseObserver.onNext(MediaMapper.toProtoList(media));
         responseObserver.onCompleted();
     }
 
     @Override
     public void getSingle(MediaProto.MediaId request, StreamObserver<MediaProto.Media> responseObserver) {
-        Optional<Media> media = mediaRepository.findById(request.getId());
+       /** Optional<Media> media = mediaRepository.findById(request.getId());
+        if (media.isEmpty()) {
+            responseObserver.onError(notFound("Media " + request.getId() + " not found"));
+            return; **/
+
+        Optional<Media> media = mediaService.getSingle(request.getId());
         if (media.isEmpty()) {
             responseObserver.onError(notFound("Media " + request.getId() + " not found"));
             return;
@@ -54,12 +73,14 @@ public class MediaGrpcService extends MediaDataGrpc.MediaDataImplBase {
 
     @Override
     public void readFile(MediaProto.MediaId request, StreamObserver<MediaProto.FileChunk> responseObserver) {
-        Optional<Media> media = mediaRepository.findById(request.getId());
+       /** Optional<Media> media = mediaRepository.findById(request.getId()); *//
+        Optional<Media> media = mediaService.getSingle(request.getId());
         if (media.isEmpty()) {
             responseObserver.onError(notFound("Media " + request.getId() + " not found"));
             return;
         }
-        try (InputStream input = fileStorage.open(media.get().getStoredFileName())) {
+        /**try (InputStream input = fileStorage.open(media.get().getStoredFileName())) {*//
+        try (InputStream input = mediaService.getFileStream(media.get().getStoredFileName())) {
             byte[] buffer = new byte[CHUNK_SIZE];
             int read;
             while ((read = input.read(buffer)) != -1) {
