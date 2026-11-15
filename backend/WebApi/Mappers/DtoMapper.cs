@@ -2,6 +2,7 @@ using ApiContracts;
 using ApiContracts.Machine;
 using ApiContracts.Media;
 using Entities;
+using ApiContracts.ChangeRequests;
 
 namespace WebApi.Mappers;
 
@@ -28,4 +29,14 @@ public static class DtoMapper
     };
 
     public static LocalizedTextDto ToDto(LocalizedText text) => new(text.En, text.Es, text.Fr);
+    
+    
+    public static ChangeRequestDto ToDto(ChangeRequest request) => new()
+    {
+        Id = request.Id,
+        Target = request.Target.ToString(),
+        Action = request.Action.ToString(),
+        Status = request.Status.ToString(),
+        CreatedAt = request.CreatedAt
+    };
 }
