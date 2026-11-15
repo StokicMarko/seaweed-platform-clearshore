@@ -1,0 +1,28 @@
+syntax = "proto3";
+package clearshore;
+import "google/protobuf/empty.proto";
+
+option java_package = "com.clearshore.data.generated";
+option java_outer_classname = "FileProto";
+option csharp_namespace = "GrpcRepositories.Generated";
+
+// Stores and deletes uploaded files on the data server. Any feature (SOLID)
+service FileData {
+ //first message carries the original file name,every following message carries one chunk of the file.
+  // Returns the unique name the data server gave the file.
+  rpc Save (stream SaveFileRequest) returns (StoredFile);
+
+  // Deletes a stored file.
+  rpc Delete (StoredFile) returns (google.protobuf.Empty);
+}
+
+message SaveFileRequest {
+  oneof part {
+    string original_file_name = 1;
+    bytes chunk = 2;
+  }
+}
+
+message StoredFile {
+  string stored_file_name = 1;
+}
