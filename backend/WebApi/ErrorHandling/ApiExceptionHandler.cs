@@ -13,6 +13,7 @@ public class ApiExceptionHandler : IExceptionHandler
         int status = exception switch
         {
             ValidationFailedException => StatusCodes.Status400BadRequest,
+            BadHttpRequestException badRequest => badRequest.StatusCode,   // for example 413: file bigger than the server accepts
             NotFoundException => StatusCodes.Status404NotFound,
             DataAccessException => StatusCodes.Status502BadGateway,
             _ => StatusCodes.Status500InternalServerError

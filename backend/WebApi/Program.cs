@@ -3,6 +3,7 @@ using GrpcRepositories.Generated;
 using RepositoryContracts;
 using WebApi.ErrorHandling;
 using Services;
+using Microsoft.AspNetCore.Http.Features;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -29,6 +30,14 @@ builder.Services.Configure<CurrentUserOptions>(builder.Configuration.GetSection(
 builder.Services.AddScoped<MediaFileValidator>();                        
 builder.Services.AddScoped<ICurrentUser, ConfiguredCurrentUser>();      //CHANGE WITH LOGIN  
 builder.Services.AddScoped<IMediaSubmissionService, MediaSubmissionService>();
+
+// The server must accept the biggest allowed file, or large videos fail  (before rules run)
+MediaUploadOptions uploadOptions = builder.Configuration
+    .GetSection(MediaUploadOptions.SectionName).Get<MediaUploadOptions>() ?? new MediaUploadOptions();
+long maxRequestBytes = uploadOptions.LargestFileBytes + 1_048_576; // + 1 MB for the text fields (research)
+
+builder.WebHost.ConfigureKestrel(kestrel => kestrel.Limits.MaxRequestBodySize = maxRequestBytes);
+builder.Services.Configure<FormOptions>(form => form.MultipartBodyLengthLimit = maxRequestBytes);
 
 var app = builder.Build();
 
