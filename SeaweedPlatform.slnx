@@ -3,6 +3,7 @@
     <Project Path="backend/Entities/Entities.csproj" />
     <Project Path="backend/GrpcRepositories/GrpcRepositories.csproj" />
     <Project Path="backend/RepositoryContracts/RepositoryContracts.csproj" />
+    <Project Path="backend/Services/Services.csproj" />
     <Project Path="backend/WebApi/WebApi.csproj" />
   </Folder>
   <Folder Name="/dashboard/">
