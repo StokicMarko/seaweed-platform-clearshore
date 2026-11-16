@@ -30,6 +30,7 @@ builder.Services.Configure<CurrentUserOptions>(builder.Configuration.GetSection(
 builder.Services.AddScoped<IMediaFileValidator, MediaFileValidator>();                     
 builder.Services.AddScoped<ICurrentUser, ConfiguredCurrentUser>();      //CHANGE WITH LOGIN  
 builder.Services.AddScoped<IMediaSubmissionService, MediaSubmissionService>();
+builder.Services.AddScoped<IChangeRequestSubmitter, ChangeRequestSubmitter>();
 
 // The server must accept the biggest allowed file, or large videos fail  (before rules run)
 MediaUploadOptions uploadOptions = builder.Configuration
