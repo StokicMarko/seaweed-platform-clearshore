@@ -1,0 +1,50 @@
+syntax = "proto3";
+package clearshore;
+
+import "google/protobuf/timestamp.proto";
+
+option java_package = "com.clearshore.data.generated";
+option java_outer_classname = "ChangeRequestProto";
+option csharp_namespace = "GrpcRepositories.Generated";
+
+// Stores change requests. Generic for news, media, country and reference changes (please)
+service ChangeRequestData {
+
+  // The .NET server sends status and requested_by. id and created_at are ignored
+  // on the way in; the reply returns the saved request with both filled in :)
+
+  
+  rpc Create (ChangeRequest) returns (ChangeRequest);
+}
+
+enum ChangeTarget {
+  CHANGE_TARGET_UNSPECIFIED = 0;
+  CHANGE_TARGET_NEWS = 1;
+  CHANGE_TARGET_MEDIA = 2;
+  CHANGE_TARGET_COUNTRY_DEPLOYMENT = 3;
+  CHANGE_TARGET_REFERENCE_ADJUSTMENT = 4;
+}
+
+enum ChangeAction {
+  CHANGE_ACTION_UNSPECIFIED = 0;
+  CHANGE_ACTION_CREATE = 1;
+  CHANGE_ACTION_UPDATE = 2;
+  CHANGE_ACTION_DELETE = 3;
+}
+
+enum ChangeStatus {
+  CHANGE_STATUS_UNSPECIFIED = 0;
+  CHANGE_STATUS_PENDING = 1;
+  CHANGE_STATUS_RETURNED = 2;
+}
+
+message ChangeRequest {
+  int32 id = 1;
+  ChangeTarget target = 2;
+  ChangeAction action = 3;
+  optional int32 target_id = 4;
+  optional string payload_json = 5;
+  ChangeStatus status = 6;
+  int32 requested_by = 7;
+  google.protobuf.Timestamp created_at = 8;
+}

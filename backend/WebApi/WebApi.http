@@ -26,3 +26,46 @@ Accept: application/json
 
 GET {{WebApi_HostAddress}}/api/machines
 Accept: application/json
+
+
+
+
+
+##########################################
+### Add media: valid request (needs a small sample image next to this file)
+POST {{WebApi_HostAddress}}/api/media
+Content-Type: multipart/form-data; boundary=WebAppBoundary #fail till #96
+
+--WebAppBoundary
+Content-Disposition: form-data; name="TechnologyCodes"
+
+mesh-boom-hd
+--WebAppBoundary
+Content-Disposition: form-data; name="TitleEn"
+
+Test title
+--WebAppBoundary
+Content-Disposition: form-data; name="TitleEs"
+
+Título de prueba
+--WebAppBoundary
+Content-Disposition: form-data; name="TitleFr"
+
+Titre de test
+--WebAppBoundary
+Content-Disposition: form-data; name="File"; filename="test.png"
+Content-Type: image/png
+
+< ./test.png
+--WebAppBoundary--
+
+### Add media: broken request (no titles, no technology) -> 400 with a list of errors
+POST {{WebApi_HostAddress}}/api/media
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="File"; filename="notes.txt"
+Content-Type: text/plain
+
+some text
+--WebAppBoundary--

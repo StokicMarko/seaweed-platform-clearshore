@@ -46,6 +46,7 @@ Business rules live only in the .NET server. The Java server stores and reads da
 | `backend/Entities/` | .NET domain classes |
 | `backend/RepositoryContracts/` | Repository interfaces the WebApi depends on |
 | `backend/GrpcRepositories/` | Repository implementations that call the Java server over gRPC |
+| `backend/Services/` | Business rules: validation and the use-case services the WebApi calls |
 | `backend/WebApi/` | REST controllers, DTO mapping, error handling |
 | `shared/ApiContracts/` | DTOs shared by the WebApi and the dashboard |
 | `dashboard/` | Blazor Server dashboard, one `IXService` and `HttpXService` per resource |
