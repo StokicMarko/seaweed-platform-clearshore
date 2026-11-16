@@ -6,16 +6,16 @@ namespace Services;
 public static class LocalizedTextValidator
 {
     /// All three languages must be filled in.
-    public static void Required(string field, LocalizedText? text, List<string> errors)
+    public static void Required(string field, LocalizedText? text, ValidationCollector validation)
     {
         if (text is null || IsMissing(text.En) || IsMissing(text.Es) || IsMissing(text.Fr))
         {
-            errors.Add($"{field} is required in English, Spanish and French.");
+            validation.Add($"{field} is required in English, Spanish and French.");
         }
     }
 
     /// Optional, but if one language is given, all three must be
-    public static void OptionalAllOrNone(string field, LocalizedText? text, List<string> errors)
+    public static void OptionalAllOrNone(string field, LocalizedText? text, ValidationCollector validation)
     {
         if (text is null)
         {
@@ -25,7 +25,7 @@ public static class LocalizedTextValidator
         int filled = new[] { text.En, text.Es, text.Fr }.Count(value => !IsMissing(value));
         if (filled != 0 && filled != 3)
         {
-            errors.Add($"{field} must be given in all three languages or left empty.");
+            validation.Add($"{field} must be given in all three languages or left empty.");
         }
     }
 

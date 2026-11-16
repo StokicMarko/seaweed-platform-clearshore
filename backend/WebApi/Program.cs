@@ -27,7 +27,7 @@ builder.Services.AddScoped<IChangeRequestRepository, ChangeRequestGrpcRepository
 builder.Services.Configure<MediaUploadOptions>(builder.Configuration.GetSection(MediaUploadOptions.SectionName));  
 builder.Services.Configure<CurrentUserOptions>(builder.Configuration.GetSection(CurrentUserOptions.SectionName)); 
 
-builder.Services.AddScoped<MediaFileValidator>();                        
+builder.Services.AddScoped<IMediaFileValidator, MediaFileValidator>();                     
 builder.Services.AddScoped<ICurrentUser, ConfiguredCurrentUser>();      //CHANGE WITH LOGIN  
 builder.Services.AddScoped<IMediaSubmissionService, MediaSubmissionService>();
 

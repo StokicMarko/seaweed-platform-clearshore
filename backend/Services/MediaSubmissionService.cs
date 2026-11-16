@@ -13,7 +13,8 @@ public class MediaSubmissionService(
     IFileRepository fileRepository,
     IChangeRequestRepository changeRequestRepository,
     ICurrentUser currentUser,
-    MediaFileValidator fileValidator) : IMediaSubmissionService
+    IMediaFileValidator fileValidator) : IMediaSubmissionService
+
 {
     // The payload is stored as JSON text. Enums are written as names (for example "Video").
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
@@ -24,16 +25,13 @@ public class MediaSubmissionService(
     public async Task<ChangeRequest> SubmitAsync(AddMediaCommand command, CancellationToken cancellationToken)
     {
         // Check, rule is broken = no save
-        List<string> errors = [];
-        MediaType? mediaType = fileValidator.Check(command.FileName, command.Length, errors);
-        LocalizedTextValidator.Required("Title", command.Title, errors);
-        LocalizedTextValidator.OptionalAllOrNone("Description", command.Description, errors);
-        await CheckTechnologiesAsync(command.TechnologyCodes, errors);
+        ValidationCollector validation = new();
+        MediaType? mediaType = fileValidator.Check(command.FileName, command.Length, validation);
+        LocalizedTextValidator.Required("Title", command.Title, validation);
+        LocalizedTextValidator.OptionalAllOrNone("Description", command.Description, validation);
+        await CheckTechnologiesAsync(command.TechnologyCodes, validation);
 
-        if (errors.Count > 0 || mediaType is null)
-        {
-            throw new ValidationFailedException(errors);
-        }
+        validation.ThrowIfAny();
 
         // Save file = unique stored name 
         string storedFileName = await fileRepository.SaveAsync(command.Content, command.FileName, cancellationToken);
@@ -43,7 +41,7 @@ public class MediaSubmissionService(
             // Describe new media item, store it as a pending change request.
             MediaSubmission submission = new()
             {
-                MediaType = mediaType.Value,
+                MediaType = mediaType!.Value, // set whenever no error was reported.
                 TechnologyCodes = command.TechnologyCodes.Distinct().ToList(),
                 Title = command.Title!, // checked by the validator above
                 Description = NullIfEmpty(command.Description),
@@ -75,11 +73,11 @@ public class MediaSubmissionService(
 
     // FR14: at least one technology, and every code must exist.
     // The docs call them technologies; the code and database call them machines. (meetinggg and change after)
-    private async Task CheckTechnologiesAsync(List<string> codes, List<string> errors)
+    private async Task CheckTechnologiesAsync(List<string> codes, ValidationCollector validation)
     {
         if (codes.Count == 0)
         {
-            errors.Add("Choose at least one technology.");
+            validation.Add("Choose at least one technology.");
             return;
         }
 
@@ -88,7 +86,7 @@ public class MediaSubmissionService(
 
         foreach (string code in codes.Where(code => !known.Contains(code)).Distinct())
         {
-            errors.Add($"Unknown technology '{code}'.");
+            validation.Add($"Unknown technology '{code}'.");
         }
     }
 
