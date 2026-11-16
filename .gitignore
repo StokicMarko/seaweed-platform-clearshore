@@ -486,3 +486,6 @@ $RECYCLE.BIN/
 
 # Maven
 target/
+
+# Uploaded media files on the data server
+media-files/

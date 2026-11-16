@@ -1,0 +1,28 @@
+@WebApi_HostAddress = http://localhost:5242
+
+GET {{WebApi_HostAddress}}/api/media
+Accept: application/json
+
+###
+
+GET {{WebApi_HostAddress}}/api/media?machine=mesh-boom-hd
+Accept: application/json
+
+###
+
+GET {{WebApi_HostAddress}}/api/media/1
+Accept: application/json
+
+###
+
+GET {{WebApi_HostAddress}}/api/media/1/file
+
+###
+
+GET {{WebApi_HostAddress}}/api/media/999
+Accept: application/json
+
+###
+
+GET {{WebApi_HostAddress}}/api/machines
+Accept: application/json

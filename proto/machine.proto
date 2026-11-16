@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package clearshore;
+
+option java_package = "com.clearshore.data.generated";
+option java_outer_classname = "MachineProto";
+option csharp_namespace = "GrpcRepositories.Generated";
+
+service MachineData {
+  rpc GetMany (GetManyMachinesRequest) returns (MachineList);
+}
+
+message Machine {
+  int32 id = 1;
+  string code = 2;
+  string name = 3;
+}
+
+message GetManyMachinesRequest {
+}
+
+message MachineList {
+  repeated Machine items = 1;
+}

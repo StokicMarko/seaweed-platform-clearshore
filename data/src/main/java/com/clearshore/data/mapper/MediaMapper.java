@@ -1,41 +1,47 @@
 package com.clearshore.data.mapper;
 
-import com.clearshore.data.grpc.MediaItem;
-import com.clearshore.data.grpc.MediaMetadata;
-import com.clearshore.data.model.Media;
+import com.clearshore.data.entity.Media;
+import com.clearshore.data.entity.MediaType;
+import com.clearshore.data.generated.MediaProto;
+
+import java.util.List;
 
 public final class MediaMapper {
 
-    private MediaMapper() {}
+    private MediaMapper() {
+    }
 
-    public static MediaItem toProto(Media m) {
-        return MediaItem.newBuilder()
-                .setId(m.id())
-                .setTitleEn(nz(m.titleEn()))
-                .setTitleFr(nz(m.titleFr()))
-                .setTitleEs(nz(m.titleEs()))
-                .setDescriptionEn(nz(m.descriptionEn()))
-                .setDescriptionFr(nz(m.descriptionFr()))
-                .setDescriptionEs(nz(m.descriptionEs()))
-                .setFileName(nz(m.fileName()))
-                .setUrl(nz(m.url()))
-                .setContentType(nz(m.contentType()))
-                .setCreatedAt(m.createdAt() == null ? "" : m.createdAt().toString())
-                .setMachine(nz(m.machine()))
+    public static MediaProto.Media toProto(Media media) {
+        MediaProto.Media.Builder builder = MediaProto.Media.newBuilder()
+                .setId(media.getId())
+                .setMediaType(toProto(media.getMediaType()))
+                .setTitle(CommonMapper.toLocalizedText(media.getTitleEn(), media.getTitleEs(), media.getTitleFr()))
+                .setOriginalFileName(media.getOriginalFileName())
+                .setContentType(media.getContentType())
+                .setPublishedAt(CommonMapper.toTimestamp(media.getPublishedAt()))
+                .setUpdatedAt(CommonMapper.toTimestamp(media.getUpdatedAt()));
+
+        if (media.getMachine() != null) {
+            builder.setMachine(MachineMapper.toProto(media.getMachine()));
+        }
+        if (media.getDescriptionEn() != null) {
+            builder.setDescription(CommonMapper.toLocalizedText(
+                    media.getDescriptionEn(), media.getDescriptionEs(), media.getDescriptionFr()));
+        }
+        return builder.build();
+    }
+
+    public static MediaProto.MediaList toProtoList(List<Media> media) {
+        return MediaProto.MediaList.newBuilder()
+                .addAllItems(media.stream().map(MediaMapper::toProto).toList())
                 .build();
     }
 
-    // id = 0, url = null, createdAt = null: they are filled in later by the service/DB
-    public static Media toDomain(MediaMetadata md) {
-        return new Media(0,
-                md.getTitleEn(), md.getTitleFr(), md.getTitleEs(),
-                emptyToNull(md.getDescriptionEn()), emptyToNull(md.getDescriptionFr()),
-                emptyToNull(md.getDescriptionEs()),
-                md.getFileName(), null, md.getContentType(), null,
-                emptyToNull(md.getMachine()));
+    private static MediaProto.MediaType toProto(MediaType mediaType) {
+        return switch (mediaType) {
+            case IMAGE -> MediaProto.MediaType.MEDIA_TYPE_IMAGE;
+            case VIDEO -> MediaProto.MediaType.MEDIA_TYPE_VIDEO;
+            case MODEL_3D -> MediaProto.MediaType.MEDIA_TYPE_MODEL_3D;
+        };
     }
-
-    private static String nz(String s) { return s == null ? "" : s; }
-
-    private static String emptyToNull(String s) { return s == null || s.isEmpty() ? null : s; }
 }

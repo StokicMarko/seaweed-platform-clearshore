@@ -1,0 +1,43 @@
+SET search_path TO sep3;
+
+INSERT INTO machine (code, name)
+VALUES ('mesh-boom-hd', 'Mesh Boom HD');
+
+INSERT INTO country (code, name_en, name_es, name_fr)
+VALUES ('AG', 'Antigua and Barbuda', 'Antigua y Barbuda', 'Antigua-et-Barbuda'),
+       ('AI', 'Anguilla', 'Anguila', 'Anguilla'),
+       ('AW', 'Aruba', 'Aruba', 'Aruba'),
+       ('BB', 'Barbados', 'Barbados', 'Barbade'),
+       ('BL', 'Saint Barthélemy', 'San Bartolomé', 'Saint-Barthélemy'),
+       ('BQ', 'Caribbean Netherlands', 'Caribe Neerlandés', 'Pays-Bas caribéens'),
+       ('BS', 'Bahamas', 'Bahamas', 'Bahamas'),
+       ('BZ', 'Belize', 'Belice', 'Belize'),
+       ('CO', 'Colombia', 'Colombia', 'Colombie'),
+       ('CR', 'Costa Rica', 'Costa Rica', 'Costa Rica'),
+       ('CU', 'Cuba', 'Cuba', 'Cuba'),
+       ('CW', 'Curaçao', 'Curazao', 'Curaçao'),
+       ('DM', 'Dominica', 'Dominica', 'Dominique'),
+       ('DO', 'Dominican Republic', 'República Dominicana', 'République dominicaine'),
+       ('GD', 'Grenada', 'Granada', 'Grenade'),
+       ('GP', 'Guadeloupe', 'Guadalupe', 'Guadeloupe'),
+       ('GT', 'Guatemala', 'Guatemala', 'Guatemala'),
+       ('HN', 'Honduras', 'Honduras', 'Honduras'),
+       ('HT', 'Haiti', 'Haití', 'Haïti'),
+       ('JM', 'Jamaica', 'Jamaica', 'Jamaïque'),
+       ('KN', 'Saint Kitts and Nevis', 'San Cristóbal y Nieves', 'Saint-Christophe-et-Niévès'),
+       ('KY', 'Cayman Islands', 'Islas Caimán', 'Îles Caïmans'),
+       ('LC', 'Saint Lucia', 'Santa Lucía', 'Sainte-Lucie'),
+       ('MF', 'Saint Martin', 'San Martín', 'Saint-Martin'),
+       ('MQ', 'Martinique', 'Martinica', 'Martinique'),
+       ('MS', 'Montserrat', 'Montserrat', 'Montserrat'),
+       ('MX', 'Mexico', 'México', 'Mexique'),
+       ('NI', 'Nicaragua', 'Nicaragua', 'Nicaragua'),
+       ('PA', 'Panama', 'Panamá', 'Panama'),
+       ('PR', 'Puerto Rico', 'Puerto Rico', 'Porto Rico'),
+       ('SX', 'Sint Maarten', 'Sint Maarten', 'Sint Maarten'),
+       ('TC', 'Turks and Caicos Islands', 'Islas Turcas y Caicos', 'Îles Turques-et-Caïques'),
+       ('TT', 'Trinidad and Tobago', 'Trinidad y Tobago', 'Trinité-et-Tobago'),
+       ('VC', 'Saint Vincent and the Grenadines', 'San Vicente y las Granadinas', 'Saint-Vincent-et-les-Grenadines'),
+       ('VE', 'Venezuela', 'Venezuela', 'Venezuela'),
+       ('VG', 'British Virgin Islands', 'Islas Vírgenes Británicas', 'Îles Vierges britanniques'),
+       ('VI', 'U.S. Virgin Islands', 'Islas Vírgenes de los Estados Unidos', 'Îles Vierges des États-Unis');

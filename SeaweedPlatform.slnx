@@ -1,8 +1,14 @@
 <Solution>
   <Folder Name="/backend/">
-    <Project Path="backend/Backend.csproj" />
+    <Project Path="backend/Entities/Entities.csproj" />
+    <Project Path="backend/GrpcRepositories/GrpcRepositories.csproj" />
+    <Project Path="backend/RepositoryContracts/RepositoryContracts.csproj" />
+    <Project Path="backend/WebApi/WebApi.csproj" />
   </Folder>
   <Folder Name="/dashboard/">
     <Project Path="dashboard/Dashboard.csproj" />
+  </Folder>
+  <Folder Name="/shared/">
+    <Project Path="shared/ApiContracts/ApiContracts.csproj" />
   </Folder>
 </Solution>
