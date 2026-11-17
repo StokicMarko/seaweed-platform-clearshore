@@ -1,35 +1,43 @@
-/* Small preview box inside the form */
+/* Larger preview, aligned with the file picker */
 .media-preview {
     box-sizing: border-box;
-    width: 100%;
-    max-width: 360px;
-    height: 200px;
-    margin-top: 12px;
-    padding: 10px;
-
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-
-    border: 1px solid #b9c6bf;
-    border-radius: 8px;
-    background: #fafaf7;
+    width: 100%;
+    max-width: 720px;
+    height: 360px;
+    margin: 8px 0 0;
+    padding: 12px;
+    border: 1px solid #5273a3;
+    border-radius: 10px;
+    background: #122e5b;
     overflow: hidden;
+    font-family: "Segoe UI", Arial, sans-serif;
 }
-
-/* Show the whole image without cropping or stretching */
-.media-preview img,
-.media-preview video {
+/* Keep the whole image or video visible */
+.media-preview img, .media-preview video {
     display: block;
     width: 100%;
     height: 100%;
     object-fit: contain;
+    border-radius: 4px;
 }
-
 .media-preview p {
-    margin: 5px 0;
-    overflow-wrap: anywhere;
+    box-sizing: border-box;
+    max-width: 100%;
+    margin: 6px 0;
+    padding: 0 12px;
+    color: #e5edf9;
+    font-size: 14px;
+    line-height: 1.5;
     text-align: center;
-    color: #173b38;
+    overflow-wrap: anywhere;
+}
+@media (max-width: 700px) {
+    .media-preview {
+        height: 240px;
+        padding: 8px;
+    }
 }
