@@ -45,9 +45,9 @@ public class MediaSubmissionService(
 
     // at least one technology, and every code must exist.
     // The docs call them technologies, but the code and database call them machines.(check meeting)
-    private async Task CheckTechnologiesAsync(List<string> codes, ValidationCollector validation)
+    private async Task CheckTechnologiesAsync(List<string> types, ValidationCollector validation)
     {
-        if (codes.Count == 0)
+        if (types.Count == 0)
         {
             validation.Add("Choose at least one technology.");
             return;
@@ -56,9 +56,9 @@ public class MediaSubmissionService(
         List<Technology> technologies = await technologyRepository.GetManyAsync();
         HashSet<string> known = technologies.Select(technology => technology.Type).ToHashSet();
 
-        foreach (string code in codes.Where(code => !known.Contains(code)).Distinct())
+        foreach (string type in types.Where(t => !known.Contains(t)).Distinct())
         {
-            validation.Add($"Unknown technology '{code}'.");
+            validation.Add($"Unknown technology '{type}'.");
         }
     }
 

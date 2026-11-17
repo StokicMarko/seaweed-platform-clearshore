@@ -19,7 +19,7 @@ public class TechnologyGrpcService extends TechnologyDataGrpc.TechnologyDataImpl
     @Override
     public void getMany(TechnologyProto.GetManyTechnologiesRequest request,
                         StreamObserver<TechnologyProto.TechnologyList> responseObserver) {
-        responseObserver.onNext(TechnologyMapper.toProtoList(technologyRepository.findAllByOrderByNameAsc()));
+        responseObserver.onNext(TechnologyMapper.toProtoList(technologyRepository.findAllByOrderByTypeAsc()));
         responseObserver.onCompleted();
     }
 }

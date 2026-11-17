@@ -7,8 +7,13 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.JoinTable;
+
+import java.util.Set;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 
 import java.time.Instant;
 
@@ -20,9 +25,11 @@ public class Media {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @ManyToOne
-    @JoinColumn(name = "technology_type")
-    private Technology technology;
+    @ManyToMany
+    @JoinTable(name = "media_technology",
+        joinColumns = @JoinColumn(name = "media_id"),
+        inverseJoinColumns = @JoinColumn(name = "technology_type"))
+    private Set<Technology> technologies = new LinkedHashSet<>();
 
     @Enumerated(EnumType.STRING)
     private MediaType mediaType;
@@ -45,11 +52,11 @@ public class Media {
     protected Media() {
     }
 
-    public Media(Technology technology, MediaType mediaType,
+    public Media(Set<Technology> technologies, MediaType mediaType,
                  String titleEn, String titleEs, String titleFr,
                  String descriptionEn, String descriptionEs, String descriptionFr,
                  String originalFileName, String storedFileName, String contentType) {
-        this.technology = technology;
+        this.technologies = new LinkedHashSet<>(technologies);
         this.mediaType = mediaType;
         this.titleEn = titleEn;
         this.titleEs = titleEs;
@@ -68,9 +75,7 @@ public class Media {
         return id;
     }
 
-    public Technology getTechnology() {
-        return technology;
-    }
+    public Set<Technology> getTechnologies() { return Collections.unmodifiableSet(technologies); }
 
     public MediaType getMediaType() {
         return mediaType;

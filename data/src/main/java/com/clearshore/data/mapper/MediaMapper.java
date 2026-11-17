@@ -3,7 +3,8 @@ package com.clearshore.data.mapper;
 import com.clearshore.data.entity.Media;
 import com.clearshore.data.entity.MediaType;
 import com.clearshore.data.generated.MediaProto;
-
+import com.clearshore.data.entity.Technology;
+import java.util.Comparator;
 import java.util.List;
 
 public final class MediaMapper {
@@ -21,9 +22,9 @@ public final class MediaMapper {
                 .setPublishedAt(CommonMapper.toTimestamp(media.getPublishedAt()))
                 .setUpdatedAt(CommonMapper.toTimestamp(media.getUpdatedAt()));
 
-        if (media.getTechnology() != null) {
-            builder.setTechnology(TechnologyMapper.toProto(media.getTechnology()));
-        }
+        media.getTechnologies().stream()
+            .sorted(Comparator.comparing(Technology::getType))
+            .forEach(t -> builder.addTechnologies(TechnologyMapper.toProto(t)));
         if (media.getDescriptionEn() != null) {
             builder.setDescription(CommonMapper.toLocalizedText(
                     media.getDescriptionEn(), media.getDescriptionEs(), media.getDescriptionFr()));

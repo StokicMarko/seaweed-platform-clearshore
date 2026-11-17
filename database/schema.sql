@@ -28,7 +28,6 @@ CREATE TABLE country
 CREATE TABLE media
 (
     id                 SERIAL PRIMARY KEY,
-    technology_type       VARCHAR(100) REFERENCES technology (type),
     media_type         VARCHAR(10)  NOT NULL CHECK (media_type IN ('IMAGE', 'VIDEO', 'MODEL_3D')),
     title_en           VARCHAR(200) NOT NULL,
     title_es           VARCHAR(200) NOT NULL,
@@ -44,6 +43,13 @@ CREATE TABLE media
     CONSTRAINT media_description_all_or_none CHECK (
         (description_en IS NULL) = (description_es IS NULL)
             AND (description_en IS NULL) = (description_fr IS NULL))
+);
+
+CREATE TABLE media_technology
+(
+    media_id        INT          NOT NULL REFERENCES media (id) ON DELETE CASCADE,
+    technology_type VARCHAR(100) NOT NULL REFERENCES technology (type),
+    PRIMARY KEY (media_id, technology_type)
 );
 
 CREATE TABLE news
