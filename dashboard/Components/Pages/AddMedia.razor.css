@@ -1,0 +1,65 @@
+.add-media {
+    color:darkgreen;
+    background: antiquewhite;
+    min-height: 100vh;
+    padding: 32px; 
+    font-family: Arial, sans-serif;
+}
+.page-heading, .media-panel {
+    max-width: 1100px;
+    margin: 0 auto;
+    
+}
+.page-heading {
+    margin-bottom: 24px;
+}
+/* Seaweed by DESMI */ 
+.eyebrow {
+    font-size: 12px;
+    font-weight: bold; 
+    letter-spacing: 2px; 
+    color: #b32121;
+    
+}
+
+h1, h2 {
+    font-family: 'Rubik', sans-serif;
+    
+}
+h1 {
+    font-size: 48px;
+    margin-top: 0; 
+}
+h2 {
+    font-size: 32px;
+}
+.media-panel {
+    background-color: white;
+    border: 1px solid black;
+    border-radius: 4px;
+    padding:8px;
+    
+}
+.media-panel p  {
+    line-height: 1.5; 
+    margin-bottom: 24px;
+}
+.field {
+    display : flex;
+    flex-direction: column;
+    gap: 8px; 
+    margin-bottom: 8px;
+}
+label, legend {
+    font-size: 14px;
+    font-weight: bold;
+}
+input, textarea {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 12px; 
+    border: 1px solid #ccc;
+    background-color: #f1f1f1;
+    color: #555;
+    font: inherit;
+}
