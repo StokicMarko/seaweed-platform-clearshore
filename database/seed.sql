@@ -1,5 +1,3 @@
-SET search_path TO sep3;
-
 INSERT INTO technology (type)
 VALUES ('mesh-boom-hd');
 
