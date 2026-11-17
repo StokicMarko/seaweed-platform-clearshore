@@ -1,0 +1,35 @@
+/* Small preview box inside the form */
+.media-preview {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 360px;
+    height: 200px;
+    margin-top: 12px;
+    padding: 10px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    border: 1px solid #b9c6bf;
+    border-radius: 8px;
+    background: #fafaf7;
+    overflow: hidden;
+}
+
+/* Show the whole image without cropping or stretching */
+.media-preview img,
+.media-preview video {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.media-preview p {
+    margin: 5px 0;
+    overflow-wrap: anywhere;
+    text-align: center;
+    color: #173b38;
+}

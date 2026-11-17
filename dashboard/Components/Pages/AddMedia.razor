@@ -2,15 +2,35 @@
 
 @using ApiContracts.Technology
 @using Dashboard.Services
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.JSInterop
+
 @inject HttpTechnologyService TechnologyService
+@inject IJSRuntime JS
+
+@implements IAsyncDisposable
 
 <PageTitle>Add media</PageTitle>
 
 <main class="add-media">
 
     <header class="page-heading">
-        <p class="eyebrow">SEAWEED BY DESMI</p>
-        <h1>Add media</h1>
+
+        <div>
+            <p class="eyebrow">CONTENT OPERATIONS</p>
+            <h1>Add media</h1>
+        </div>
+
+        @* Visual role selector for the prototype. *@
+        <div class="role-selector">
+            <label for="view-as">View as</label>
+
+            <select id="view-as" @bind="selectedView">
+                <option value="Staff Member">Staff Member</option>
+                <option value="Main Admin">Main Admin</option>
+            </select>
+        </div>
+
     </header>
 
     <section class="media-panel">
@@ -29,7 +49,29 @@
                     Picture, video or 3D model
                 </label>
 
-                <input id="media-file" type="file" />
+                <InputFile id="media-file"
+                           @ref="fileInput"
+                           OnChange="OnFileSelected" />
+
+                @* Display the selected file inside the form. *@
+                @if (selectedFile is not null)
+                {
+                    @if (!string.IsNullOrEmpty(previewError))
+                    {
+                        <p role="alert">@previewError</p>
+                    }
+                    else if (!string.IsNullOrEmpty(previewUrl))
+                    {
+                        <MediaFilePreview Url="@previewUrl"
+                                          ContentType="@selectedFile.ContentType"
+                                          FileName="@selectedFile.Name" />
+                    }
+
+                    <small>
+                        @selectedFile.Name
+                        — @selectedFile.Size.ToString("N0") bytes
+                    </small>
+                }
             </div>
 
             <fieldset class="technology-section">
@@ -126,7 +168,7 @@
             complete all three languages.
         </p>
 
-        @* Submission stays disabled until the upload is connected. *@
+        @* Submission stays disabled until validation and upload are connected. *@
         <footer class="form-actions">
             <p>
                 Submitting creates a pending change request.
@@ -143,14 +185,21 @@
 </main>
 
 @code {
-    // Available choices received from the API.
+    // Available technologies and current selections.
     private List<TechnologyDto> technologies = new();
-
-    // Stores multiple selections without duplicates.
     private HashSet<string> selectedTechnologyTypes = new();
 
     private bool loadingTechnologies = true;
     private string? technologyError;
+
+    // File metadata and the temporary browser preview.
+    private InputFile? fileInput;
+    private IBrowserFile? selectedFile;
+    private IJSObjectReference? previewModule;
+
+    private string previewUrl = "";
+    private string? previewError;
+    private string selectedView = "Staff Member";
 
     protected override async Task OnInitializedAsync()
     {
@@ -184,6 +233,59 @@
         else
         {
             selectedTechnologyTypes.Remove(type);
+        }
+    }
+
+    // Create a browser preview without uploading the file.
+    private async Task OnFileSelected(InputFileChangeEventArgs args)
+    {
+        selectedFile = args.File;
+        previewError = null;
+        previewUrl = "";
+
+        try
+        {
+            if (previewModule is null)
+            {
+                previewModule =
+                    await JS.InvokeAsync<IJSObjectReference>(
+                        "import",
+                        "./js/mediaPreview.js");
+            }
+
+            previewUrl = await previewModule.InvokeAsync<string>(
+                "createPreview",
+                fileInput!.Element);
+        }
+        catch (JSException)
+        {
+            previewError =
+                "Could not display the preview. Please select the file again.";
+        }
+    }
+
+    // Release the temporary preview when leaving the page.
+    public async ValueTask DisposeAsync()
+    {
+        if (previewModule is null)
+        {
+            return;
+        }
+
+        try
+        {
+            if (fileInput is not null)
+            {
+                await previewModule.InvokeVoidAsync(
+                    "releasePreview",
+                    fileInput.Element);
+            }
+
+            await previewModule.DisposeAsync();
+        }
+        catch (JSDisconnectedException)
+        {
+            // The browser connection has already closed.
         }
     }
 }
