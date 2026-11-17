@@ -3,7 +3,7 @@ using RepositoryContracts;
 
 namespace GrpcRepositories;
 
-public class TechnologyGrpcRepository(Generated.TechnologyData.TechnologyDataClient client) : IMachineRepository
+public class TechnologyGrpcRepository(Generated.TechnologyData.TechnologyDataClient client) : ITechnologyRepository
 {
     public Task<List<Technology>> GetManyAsync() =>
         GrpcCall.RunAsync(async () =>
