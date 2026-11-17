@@ -1,0 +1,89 @@
+@page "/media/add"
+
+<PageTitle>Add media</PageTitle>
+
+<main class="add-media">
+    <header class="page-heading">
+        <p class="eyebrow">SEAWEED BY DESMI</p>
+        <h1>Add media</h1>
+    </header>
+
+    <section class="media-panel">
+        <h2>Media library entry</h2>
+
+        <p>
+            Choose one file and at least one technology,
+            then enter all three language versions.
+        </p>
+
+        <div class="field">
+            <label for="media-file">Picture, video or 3D model</label>
+            <input id="media-file" type="file" />
+        </div>
+
+        <fieldset class="technology-section">
+            <legend>Technologies</legend>
+            <p>Technology options will load here.</p>
+        </fieldset>
+
+        <div class="language-sections">
+            <fieldset class="language-section">
+                <legend>English</legend>
+
+                <div class="field">
+                    <label for="title-en">Title (required)</label>
+                    <input id="title-en" type="text" />
+                </div>
+
+                <div class="field">
+                    <label for="description-en">Description</label>
+                    <textarea id="description-en" rows="5"></textarea>
+                </div>
+            </fieldset>
+
+            <fieldset class="language-section">
+                <legend>Español</legend>
+
+                <div class="field">
+                    <label for="title-es">Title (required)</label>
+                    <input id="title-es" type="text" />
+                </div>
+
+                <div class="field">
+                    <label for="description-es">Description</label>
+                    <textarea id="description-es" rows="5"></textarea>
+                </div>
+            </fieldset>
+
+            <fieldset class="language-section">
+                <legend>Français</legend>
+
+                <div class="field">
+                    <label for="title-fr">Title (required)</label>
+                    <input id="title-fr" type="text" />
+                </div>
+
+                <div class="field">
+                    <label for="description-fr">Description</label>
+                    <textarea id="description-fr" rows="5"></textarea>
+                </div>
+            </fieldset>
+        </div>
+
+        <p class="helper">
+            Descriptions are optional. If you enter one,
+            complete all three languages.
+        </p>
+
+        <footer class="form-actions">
+            <p>
+                Submitting creates a pending change request.
+                Nothing is published until approval.
+            </p>
+
+            <button type="button" disabled>
+                Submit change request
+            </button>
+        </footer>
+    </section>
+</main>
