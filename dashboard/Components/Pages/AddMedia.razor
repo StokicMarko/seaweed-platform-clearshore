@@ -1,8 +1,8 @@
 @page "/media/add"
 
-@using ApiContracts.Machine
+@using ApiContracts.Technology
 @using Dashboard.Services
-@inject HttpMachineService TechnologyService
+@inject HttpTechnologyService TechnologyService
 
 <PageTitle>Add media</PageTitle>
 
@@ -54,17 +54,21 @@
                         @foreach (var technology in technologies)
                         {
                             <label class="technology-option"
-                                   @key="technology.Code">
+                                   @key="technology.Type">
 
                                 <input type="checkbox"
-                                       checked="@selectedTechnologyCodes.Contains(technology.Code)"
-                                       @onchange="() => ToggleTechnology(technology.Code)" />
+                                       checked="@selectedTechnologyTypes.Contains(technology.Type)"
+                                       @onchange="args => SetTechnology(technology.Type, args.Value is true)" />
 
-                                @technology.Name
+                                @technology.Type
                             </label>
                         }
 
                     </div>
+
+                    <p class="helper">
+                        Select at least one technology.
+                    </p>
                 }
             </fieldset>
 
@@ -139,16 +143,15 @@
 </main>
 
 @code {
-    // The existing project calls technologies "machines".
-    private List<MachineDto> technologies = new();
+    // Available choices received from the API.
+    private List<TechnologyDto> technologies = new();
 
-    // A HashSet stores each selected technology code only once.
-    private HashSet<string> selectedTechnologyCodes = new();
+    // Stores multiple selections without duplicates.
+    private HashSet<string> selectedTechnologyTypes = new();
 
     private bool loadingTechnologies = true;
     private string? technologyError;
 
-    // Load the available technologies when the page opens.
     protected override async Task OnInitializedAsync()
     {
         try
@@ -160,22 +163,27 @@
             technologyError =
                 "Could not load technologies. Check that the API is running.";
         }
+        catch (TaskCanceledException)
+        {
+            technologyError =
+                "Loading technologies timed out. Please reload the page.";
+        }
         finally
         {
             loadingTechnologies = false;
         }
     }
 
-    // Add a checked technology or remove an unchecked one.
-    private void ToggleTechnology(string code)
+    // Add checked technologies and remove unchecked ones.
+    private void SetTechnology(string type, bool isSelected)
     {
-        if (selectedTechnologyCodes.Contains(code))
+        if (isSelected)
         {
-            selectedTechnologyCodes.Remove(code);
+            selectedTechnologyTypes.Add(type);
         }
         else
         {
-            selectedTechnologyCodes.Add(code);
+            selectedTechnologyTypes.Remove(type);
         }
     }
 }

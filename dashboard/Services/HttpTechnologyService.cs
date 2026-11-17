@@ -3,7 +3,7 @@ using ApiContracts.Technology;
 
 namespace Dashboard.Services;
 
-// Gets the technology choices from the API.
+// Loads the available technologies from the API.
 public class HttpTechnologyService
 {
     private readonly HttpClient http;

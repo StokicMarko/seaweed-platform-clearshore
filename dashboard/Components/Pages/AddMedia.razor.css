@@ -62,7 +62,7 @@ h2 {
     margin-bottom: 24px;
 }
 
-/* Place each label above its input */
+/* Place labels above their inputs */
 .field {
     display: flex;
     flex-direction: column;
@@ -76,7 +76,7 @@ legend {
     font-weight: bold;
 }
 
-/* Shared appearance for text inputs, file input and descriptions */
+/* Appearance of the form inputs */
 input,
 textarea {
     box-sizing: border-box;
@@ -94,13 +94,13 @@ textarea {
     resize: vertical;
 }
 
-/* Highlight the field being used */
 input:focus,
 textarea:focus {
     outline: 2px solid #144e48;
     outline-offset: 2px;
 }
 
+/* Technology checkboxes */
 .technology-section {
     min-width: 0;
     border: none;
@@ -116,18 +116,28 @@ textarea:focus {
     color: #61736f;
 }
 
-/* Keep future technology checkboxes at their normal size */
-.technology-section input {
-    width: auto;
-    padding: 0;
-    margin-right: 6px;
+.technology-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 10px;
 }
 
-.technology-section label {
+.technology-option {
+    display: flex;
+    align-items: center;
+    gap: 6px;
     font-weight: normal;
 }
 
-/* Three equal columns for the language sections */
+/* Checkboxes must not stretch like text inputs */
+.technology-option input {
+    width: auto;
+    padding: 0;
+    margin: 0;
+}
+
+/* Three equal columns for the languages */
 .language-sections {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -152,7 +162,7 @@ legend {
     font-size: 14px;
 }
 
-/* Keep the submission message and button on the left */
+/* Submission message and button */
 .form-actions {
     display: flex;
     flex-direction: column;
