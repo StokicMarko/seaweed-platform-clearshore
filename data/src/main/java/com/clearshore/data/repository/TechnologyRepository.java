@@ -5,7 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
-public interface MachineRepository extends JpaRepository<Machine, Integer> {
+public interface TechnologyRepository extends JpaRepository<Technology, Integer> {
 
-    List<Machine> findAllByOrderByNameAsc();
+    List<Technology> findAllByOrderByNameAsc();
 }

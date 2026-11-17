@@ -21,8 +21,8 @@ public class Media {
     private int id;
 
     @ManyToOne
-    @JoinColumn(name = "machine_id")
-    private Machine machine;
+    @JoinColumn(type = "technology_type")
+    private Technology technology;
 
     @Enumerated(EnumType.STRING)
     private MediaType mediaType;
@@ -45,11 +45,11 @@ public class Media {
     protected Media() {
     }
 
-    public Media(Machine machine, MediaType mediaType,
+    public Media(Technology technology, MediaType mediaType,
                  String titleEn, String titleEs, String titleFr,
                  String descriptionEn, String descriptionEs, String descriptionFr,
                  String originalFileName, String storedFileName, String contentType) {
-        this.machine = machine;
+        this.technology = technology;
         this.mediaType = mediaType;
         this.titleEn = titleEn;
         this.titleEs = titleEs;
@@ -68,8 +68,8 @@ public class Media {
         return id;
     }
 
-    public Machine getMachine() {
-        return machine;
+    public Machine getTechnology() {
+        return technology;
     }
 
     public MediaType getMediaType() {
