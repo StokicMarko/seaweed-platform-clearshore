@@ -11,3 +11,7 @@ message LocalizedText {
   string es = 2;
   string fr = 3;
 }
+
+message FileChunk {
+  bytes data = 1;
+}
