@@ -6,13 +6,13 @@ namespace GrpcRepositories;
 
 public class MediaGrpcRepository(Generated.MediaData.MediaDataClient client) : IMediaRepository
 {
-    public Task<List<Media>> GetManyAsync(string? machineCode) =>
+    public Task<List<Media>> GetManyAsync(string? technologyType) =>
         GrpcCall.RunAsync(async () =>
         {
             Generated.GetManyMediaRequest request = new();
-            if (machineCode is not null)
+            if (technologyType is not null)
             {
-                request.MachineCode = machineCode;
+                request.TechnologyType = technologyType;
             }
 
             Generated.MediaList reply = await client.GetManyAsync(request);

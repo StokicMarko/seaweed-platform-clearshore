@@ -9,5 +9,5 @@ public interface MediaRepository extends JpaRepository<Media, Integer> {
 
     List<Media> findAllByOrderByPublishedAtDesc();
 
-    List<Media> findByMachineCodeOrderByPublishedAtDesc(String machineCode);
+    List<Media> findByTechnologyTypeOrderByPublishedAtDesc(String technologyType);
 }

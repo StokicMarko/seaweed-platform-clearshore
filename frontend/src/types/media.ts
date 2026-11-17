@@ -1,11 +1,11 @@
 import type { LocalizedText } from './localized-text';
-import type { Machine } from './machine';
+import type { Technology } from './technology';
 
 export type MediaType = 'Image' | 'Video' | 'Model3D';
 
 export interface Media {
   id: number;
-  machine: Machine | null;
+  technology: Technology | null;
   mediaType: MediaType;
   title: LocalizedText;
   description: LocalizedText | null;

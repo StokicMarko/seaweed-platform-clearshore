@@ -34,8 +34,8 @@ public class MediaGrpcService extends MediaDataGrpc.MediaDataImplBase {
     @Override
     public void getMany(MediaProto.GetManyMediaRequest request,
                         StreamObserver<MediaProto.MediaList> responseObserver) {
-        List<Media> media = request.hasMachineCode()
-                ? mediaRepository.findByMachineCodeOrderByPublishedAtDesc(request.getMachineCode())
+        List<Media> media = request.hasTechnologyType()
+                ? mediaRepository.findByTechnologyTypeOrderByPublishedAtDesc(request.getTechnologyType())
                 : mediaRepository.findAllByOrderByPublishedAtDesc();
         responseObserver.onNext(MediaMapper.toProtoList(media));
         responseObserver.onCompleted();

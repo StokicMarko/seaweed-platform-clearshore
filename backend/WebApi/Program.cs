@@ -15,12 +15,12 @@ builder.Services.AddExceptionHandler<ApiExceptionHandler>();
 
 Uri dataServerAddress = new(builder.Configuration["DataServer:Address"]!);
 builder.Services.AddGrpcClient<MediaData.MediaDataClient>(options => options.Address = dataServerAddress);
-builder.Services.AddGrpcClient<MachineData.MachineDataClient>(options => options.Address = dataServerAddress);
+builder.Services.AddGrpcClient<TechnologyData.TechnologyDataClient>(options => options.Address = dataServerAddress);
 builder.Services.AddGrpcClient<FileData.FileDataClient>(options => options.Address = dataServerAddress);                      
 builder.Services.AddGrpcClient<ChangeRequestData.ChangeRequestDataClient>(options => options.Address = dataServerAddress);   
 
 builder.Services.AddScoped<IMediaRepository, MediaGrpcRepository>();
-builder.Services.AddScoped<IMachineRepository, MachineGrpcRepository>();
+builder.Services.AddScoped<ITechnologyRepository, TechnologyGrpcRepository>();
 builder.Services.AddScoped<IFileRepository, FileGrpcRepository>();                      
 builder.Services.AddScoped<IChangeRequestRepository, ChangeRequestGrpcRepository>();   
 

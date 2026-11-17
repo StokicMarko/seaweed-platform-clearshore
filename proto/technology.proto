@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package clearshore;
+
+option java_package = "com.clearshore.data.generated";
+option java_outer_classname = "TechnologyProto";
+option csharp_namespace = "GrpcRepositories.Generated";
+
+service TechnologyData {
+  rpc GetMany (GetManyTechnologiesRequest) returns (TechnologyList);
+}
+
+message Technology {
+  string type=1;
+}
+
+message GetManyTechnologiesRequest {
+}
+
+message TechnologyList {
+  repeated Technology items = 1;
+}

@@ -21,8 +21,8 @@ public final class MediaMapper {
                 .setPublishedAt(CommonMapper.toTimestamp(media.getPublishedAt()))
                 .setUpdatedAt(CommonMapper.toTimestamp(media.getUpdatedAt()));
 
-        if (media.getMachine() != null) {
-            builder.setMachine(MachineMapper.toProto(media.getMachine()));
+        if (media.getTechnology() != null) {
+            builder.setTechnology(TechnologyMapper.toProto(media.getTechnology()));
         }
         if (media.getDescriptionEn() != null) {
             builder.setDescription(CommonMapper.toLocalizedText(

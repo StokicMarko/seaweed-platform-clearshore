@@ -1,7 +1,7 @@
 SET search_path TO sep3;
 
-INSERT INTO machine (code, name)
-VALUES ('mesh-boom-hd', 'Mesh Boom HD');
+INSERT INTO technology (type)
+VALUES ('mesh-boom-hd');
 
 INSERT INTO country (code, name_en, name_es, name_fr)
 VALUES ('AG', 'Antigua and Barbuda', 'Antigua y Barbuda', 'Antigua-et-Barbuda'),

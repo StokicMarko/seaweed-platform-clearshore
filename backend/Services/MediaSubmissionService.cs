@@ -7,7 +7,7 @@ namespace Services;
 /// The media item itself is only created when the Main Admin approves the request. :)
 
 public class MediaSubmissionService(
-    IMachineRepository machineRepository,
+    ITechnologyRepository technologyRepository,
     IFileRepository fileRepository,
     IMediaFileValidator fileValidator,
     IChangeRequestSubmitter submitter) : IMediaSubmissionService
@@ -53,8 +53,8 @@ public class MediaSubmissionService(
             return;
         }
 
-        List<Machine> machines = await machineRepository.GetManyAsync();
-        HashSet<string> known = machines.Select(machine => machine.Code).ToHashSet();
+        List<Technology> technologies = await technologyRepository.GetManyAsync();
+        HashSet<string> known = technologies.Select(technology => technology.Type).ToHashSet();
 
         foreach (string code in codes.Where(code => !known.Contains(code)).Distinct())
         {

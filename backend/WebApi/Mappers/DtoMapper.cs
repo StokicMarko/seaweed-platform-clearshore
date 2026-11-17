@@ -1,5 +1,5 @@
 using ApiContracts;
-using ApiContracts.Machine;
+using ApiContracts.Technology;
 using ApiContracts.Media;
 using Entities;
 using ApiContracts.ChangeRequests;
@@ -11,7 +11,7 @@ public static class DtoMapper
     public static MediaDto ToDto(Media media) => new()
     {
         Id = media.Id,
-        Machine = media.Machine is null ? null : ToDto(media.Machine),
+        Technology = media.Technology is null ? null : ToDto(media.Technology),
         MediaType = media.MediaType.ToString(),
         Title = ToDto(media.Title),
         Description = media.Description is null ? null : ToDto(media.Description),
@@ -21,11 +21,9 @@ public static class DtoMapper
         PublishedAt = media.PublishedAt
     };
 
-    public static MachineDto ToDto(Machine machine) => new()
+    public static TechnologyDto ToDto(Technology technology) => new()
     {
-        Id = machine.Id,
-        Code = machine.Code,
-        Name = machine.Name
+         Type = technology.Type
     };
 
     public static LocalizedTextDto ToDto(LocalizedText text) => new(text.En, text.Es, text.Fr);

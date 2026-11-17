@@ -12,11 +12,9 @@ CREATE TABLE app_user
     created_at    TIMESTAMPTZ  NOT NULL DEFAULT now()
 );
 
-CREATE TABLE machine
+CREATE TABLE technology
 (
-    id   SERIAL PRIMARY KEY,
-    code VARCHAR(50)  NOT NULL UNIQUE CHECK (code ~ '^[a-z0-9-]+$'),
-    name VARCHAR(100) NOT NULL
+    type VARCHAR(100) PRIMARY KEY
 );
 
 CREATE TABLE country
@@ -30,7 +28,7 @@ CREATE TABLE country
 CREATE TABLE media
 (
     id                 SERIAL PRIMARY KEY,
-    machine_id         INT REFERENCES machine (id),
+    technology_type       VARCHAR(100) REFERENCES technology (type),
     media_type         VARCHAR(10)  NOT NULL CHECK (media_type IN ('IMAGE', 'VIDEO', 'MODEL_3D')),
     title_en           VARCHAR(200) NOT NULL,
     title_es           VARCHAR(200) NOT NULL,
