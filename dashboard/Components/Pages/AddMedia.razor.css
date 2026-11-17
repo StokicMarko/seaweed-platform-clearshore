@@ -1,65 +1,172 @@
 .add-media {
-    color:darkgreen;
-    background: antiquewhite;
+    color: #173b38;
+    background: #f6f5ef;
     min-height: 100vh;
-    padding: 32px; 
+    padding: 32px;
     font-family: Arial, sans-serif;
 }
-.page-heading, .media-panel {
+
+.page-heading,
+.media-panel {
     max-width: 1100px;
     margin: 0 auto;
-    
 }
+
 .page-heading {
     margin-bottom: 24px;
 }
-/* Seaweed by DESMI */ 
+
 .eyebrow {
     font-size: 12px;
-    font-weight: bold; 
-    letter-spacing: 2px; 
-    color: #b32121;
-    
+    font-weight: bold;
+    letter-spacing: 2px;
+    color: #144e48;
 }
 
-h1, h2 {
-    font-family: 'Rubik', sans-serif;
-    
-}
-h1 {
-    font-size: 48px;
-    margin-top: 0; 
-}
+h1,
 h2 {
+    font-family: Georgia, serif;
+}
+
+h1 {
     font-size: 32px;
+    margin: 8px 0;
 }
+
+h2 {
+    font-size: 24px;
+    margin-top: 0;
+}
+
 .media-panel {
-    background-color: white;
-    border: 1px solid black;
-    border-radius: 4px;
-    padding:8px;
-    
+    background: white;
+    border: 1px solid #d9dfd8;
+    border-radius: 14px;
+    padding: 28px;
 }
-.media-panel p  {
-    line-height: 1.5; 
+
+.media-panel  p {
+    line-height: 1.5;
     margin-bottom: 24px;
 }
+
 .field {
-    display : flex;
+    display: flex;
     flex-direction: column;
-    gap: 8px; 
-    margin-bottom: 8px;
+    gap: 8px;
+    margin-bottom: 20px;
 }
-label, legend {
+
+label,
+legend {
     font-size: 14px;
     font-weight: bold;
 }
-input, textarea {
+
+input,
+textarea {
     box-sizing: border-box;
     width: 100%;
-    padding: 12px; 
-    border: 1px solid #ccc;
-    background-color: #f1f1f1;
-    color: #555;
+    padding: 12px;
+    border: 1px solid #b9c6bf;
+    border-radius: 7px;
+    background: white;
+    color: #173b38;
     font: inherit;
+}
+
+textarea {
+    min-height: 140px;
+    resize: vertical;
+}
+
+input:focus-visible,
+textarea:focus-visible {
+    outline: 2px solid #144e48;
+    outline-offset: 2px;
+}
+
+.technology-section {
+    border: none;
+    padding: 0;
+    margin: 24px 0;
+}
+
+.technology-section p {
+    color: #61736f;
+}
+
+.language-sections {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+}
+
+.language-section {
+    min-width: 0;
+    margin: 0;
+    padding: 20px 16px 0;
+    border: 1px solid #d9dfd8;
+    border-radius: 10px;
+    background: #fafaf7;
+}
+
+legend {
+    padding: 0 6px;
+}
+
+.helper {
+    color: #61736f;
+    font-size: 14px;
+}
+
+.form-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid #d9dfd8;
+}
+
+.form-actions p {
+    max-width: 460px;
+    color: #61736f;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+button {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 7px;
+    background: #144e48;
+    color: white;
+    font: inherit;
+    font-weight: bold;
+}
+
+button:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+@media (max-width: 850px) {
+    .add-media {
+        padding: 16px;
+    }
+
+    .media-panel {
+        padding: 20px;
+    }
+
+    .language-sections {
+        grid-template-columns: 1fr;
+    }
+
+    .form-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
 }
