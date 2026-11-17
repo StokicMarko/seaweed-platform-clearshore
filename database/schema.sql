@@ -100,29 +100,22 @@ CREATE TABLE reference_adjustment
 CREATE TABLE change_request
 (
     id           SERIAL PRIMARY KEY,
-    content_type VARCHAR(30) NOT NULL CHECK (content_type IN
+    target_type  VARCHAR(30) NOT NULL CHECK (target_type IN
                                              ('NEWS', 'MEDIA', 'COUNTRY_DEPLOYMENT', 'REFERENCE_ADJUSTMENT')),
-    action       VARCHAR(10) NOT NULL CHECK (action IN ('CREATE', 'UPDATE', 'DELETE')),
+    type         VARCHAR(10) NOT NULL CHECK (type IN ('CREATE', 'UPDATE', 'DELETE')),
     target_id    INT,
     payload      JSONB,
-    status       VARCHAR(10) NOT NULL DEFAULT 'DRAFT' CHECK (status IN ('DRAFT', 'PENDING', 'PUBLISHED', 'REJECTED')),
+    status       VARCHAR(10) NOT NULL DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'RETURNED')),
     requested_by INT         NOT NULL REFERENCES app_user (id),
     created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
-    submitted_at TIMESTAMPTZ,
     reviewed_by  INT REFERENCES app_user (id),
-    reviewed_at  TIMESTAMPTZ,
-    review_note  TEXT,
-    CONSTRAINT change_request_payload_unless_delete CHECK ((action = 'DELETE') = (payload IS NULL)),
-    CONSTRAINT change_request_target_unless_create CHECK (action = 'CREATE' OR target_id IS NOT NULL),
-    CONSTRAINT change_request_published_has_target CHECK (status <> 'PUBLISHED' OR target_id IS NOT NULL),
-    CONSTRAINT change_request_submitted_unless_draft CHECK ((status = 'DRAFT') = (submitted_at IS NULL)),
-    CONSTRAINT change_request_reviewed_when_decided CHECK (
-        (status IN ('PUBLISHED', 'REJECTED')) = (reviewed_by IS NOT NULL AND reviewed_at IS NOT NULL))
+    CONSTRAINT change_request_payload_unless_delete CHECK ((type = 'DELETE') = (payload IS NULL)),
+    CONSTRAINT change_request_target_unless_create CHECK (type = 'CREATE' OR target_id IS NOT NULL)
 );
 
-CREATE UNIQUE INDEX change_request_one_pending_per_item
-    ON change_request (content_type, target_id)
-    WHERE status = 'PENDING' AND target_id IS NOT NULL;
+CREATE UNIQUE INDEX change_request_one_open_per_item
+    ON change_request (target_type, target_id)
+    WHERE target_id IS NOT NULL;
 
 CREATE VIEW reference_totals AS
 SELECT (SELECT COALESCE(SUM(mesh_km), 0) FROM country_deployment)
