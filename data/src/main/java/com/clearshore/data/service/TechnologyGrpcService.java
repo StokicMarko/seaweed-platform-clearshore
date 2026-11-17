@@ -1,9 +1,9 @@
 package com.clearshore.data.service;
 
-import com.clearshore.data.generated.MachineDataGrpc;
-import com.clearshore.data.generated.MachineProto;
-import com.clearshore.data.mapper.MachineMapper;
-import com.clearshore.data.repository.MachineRepository;
+import com.clearshore.data.generated.TechnologyDataGrpc;
+import com.clearshore.data.generated.TechnologyProto;
+import com.clearshore.data.mapper.TechnologyMapper;
+import com.clearshore.data.repository.TechnologyRepository;
 import io.grpc.stub.StreamObserver;
 import org.springframework.grpc.server.service.GrpcService;
 

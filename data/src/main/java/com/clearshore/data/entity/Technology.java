@@ -11,7 +11,6 @@ import jakarta.persistence.Table;
 public class Technology {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private String type;
 
     protected Technology() {

@@ -1,7 +1,7 @@
 package com.clearshore.data.mapper;
 
-import com.clearshore.data.entity.Machine;
-import com.clearshore.data.generated.MachineProto;
+import com.clearshore.data.entity.Technology;
+import com.clearshore.data.generated.TechnologyProto;
 
 import java.util.List;
 

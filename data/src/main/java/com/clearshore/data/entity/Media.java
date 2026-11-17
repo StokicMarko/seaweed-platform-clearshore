@@ -21,7 +21,7 @@ public class Media {
     private int id;
 
     @ManyToOne
-    @JoinColumn(type = "technology_type")
+    @JoinColumn(name = "technology_type")
     private Technology technology;
 
     @Enumerated(EnumType.STRING)
@@ -68,7 +68,7 @@ public class Media {
         return id;
     }
 
-    public Machine getTechnology() {
+    public Technology getTechnology() {
         return technology;
     }
 
