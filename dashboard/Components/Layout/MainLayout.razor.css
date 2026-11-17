@@ -22,13 +22,14 @@
     color: #e5edf9;
     border-right: 1px solid #294165;
 }
+/* Larger logo within the sidebar */
 .sidebar-logo {
     display: block;
     box-sizing: border-box;
     width: 100%;
-    max-width: 184px;
+    max-width: 215px;
     height: auto;
-    margin: 0 4px 18px;
+    margin: 0 0 20px;
     border-radius: 6px;
 }
 .sidebar-brand {
@@ -133,8 +134,15 @@
         border-right: none;
         border-bottom: 1px solid #294165;
     }
+    /* Larger logo within the sidebar */
     .sidebar-logo {
-        max-width: 160px;
+        display: block;
+        box-sizing: border-box;
+        width: 100%;
+        max-width: 215px;
+        height: auto;
+        margin: 0 0 20px;
+        border-radius: 6px;
     }
     .dashboard-sidebar h2 {
         margin-bottom: 20px;
