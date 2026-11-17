@@ -77,41 +77,25 @@
             <fieldset class="technology-section">
                 <legend>Technologies</legend>
 
-                @if (loadingTechnologies)
-                {
-                    <p>Loading technologies...</p>
-                }
-                else if (!string.IsNullOrEmpty(technologyError))
-                {
-                    <p role="alert">@technologyError</p>
-                }
-                else if (technologies.Count == 0)
-                {
-                    <p>No technologies are available.</p>
-                }
-                else
-                {
-                    <div class="technology-options">
+                @* Temporary example choices from the Canva template. *@
+                <div class="technology-options">
 
-                        @foreach (var technology in technologies)
-                        {
-                            <label class="technology-option"
-                                   @key="technology.Type">
+                    <label class="technology-option">
+                        <input type="checkbox" value="Mesh boom" />
+                        Mesh boom
+                    </label>
 
-                                <input type="checkbox"
-                                       checked="@selectedTechnologyTypes.Contains(technology.Type)"
-                                       @onchange="args => SetTechnology(technology.Type, args.Value is true)" />
+                    <label class="technology-option">
+                        <input type="checkbox" value="Removal unit" />
+                        Removal unit
+                    </label>
 
-                                @technology.Type
-                            </label>
-                        }
+                    <label class="technology-option">
+                        <input type="checkbox" value="Collection system" />
+                        Collection system
+                    </label>
 
-                    </div>
-
-                    <p class="helper">
-                        Select at least one technology.
-                    </p>
-                }
+                </div>
             </fieldset>
 
         </div>
