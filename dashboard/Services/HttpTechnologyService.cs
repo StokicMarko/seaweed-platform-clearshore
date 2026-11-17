@@ -3,22 +3,13 @@ using ApiContracts.Technology;
 
 namespace Dashboard.Services;
 
-// Loads the available technologies from the API.
-public class HttpTechnologyService
+public class HttpTechnologyService(HttpClient http)
 {
-    private readonly HttpClient http;
-
-    public HttpTechnologyService(HttpClient http)
+    public async Task<List<TechnologyDto>> GetManyAsync(
+        CancellationToken cancellationToken = default)
     {
-        this.http = http;
-    }
-
-    public async Task<List<TechnologyDto>> GetManyAsync()
-    {
-        var technologies =
-            await http.GetFromJsonAsync<List<TechnologyDto>>(
-                "api/technologies");
-
-        return technologies ?? new List<TechnologyDto>();
+        return await http.GetFromJsonAsync<List<TechnologyDto>>(
+            "api/technologies",
+            cancellationToken) ?? new();
     }
 }

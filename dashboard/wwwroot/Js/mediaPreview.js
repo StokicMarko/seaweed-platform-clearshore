@@ -11,6 +11,7 @@ export function createPreview(input) {
     }
 
     const url = URL.createObjectURL(file);
+
     previews.set(input, url);
 
     return url;
@@ -25,7 +26,7 @@ export function releasePreview(input) {
     }
 }
 
-// Also clean up if navigation removes the file input.
+// Clean up when navigation removes the input.
 const observer = new MutationObserver(() => {
     for (const input of previews.keys()) {
         if (!input.isConnected) {

@@ -1,4 +1,4 @@
-/* Larger preview, aligned with the file picker */
+/* Large preview underneath the file picker. */
 .media-preview {
     box-sizing: border-box;
     display: flex;
@@ -16,14 +16,17 @@
     overflow: hidden;
     font-family: "Segoe UI", Arial, sans-serif;
 }
-/* Keep the whole image or video visible */
-.media-preview img, .media-preview video {
+
+/* Display the whole image or video without cropping. */
+.media-preview img,
+.media-preview video {
     display: block;
     width: 100%;
     height: 100%;
     object-fit: contain;
     border-radius: 4px;
 }
+
 .media-preview p {
     box-sizing: border-box;
     max-width: 100%;
@@ -35,6 +38,7 @@
     text-align: center;
     overflow-wrap: anywhere;
 }
+
 @media (max-width: 700px) {
     .media-preview {
         height: 240px;

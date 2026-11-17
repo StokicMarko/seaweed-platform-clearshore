@@ -1,39 +1,71 @@
 @page "/media/add"
-
+@namespace Dashboard.Components.Pages
+@using Dashboard.Components.Pages
+@using ApiContracts.ChangeRequests
+@using ApiContracts.Media
 @using ApiContracts.Technology
+@using Dashboard.Models
 @using Dashboard.Services
 @using Microsoft.AspNetCore.Components.Forms
-@using Microsoft.JSInterop
-
+@inject IMediaService MediaService
 @inject HttpTechnologyService TechnologyService
-@inject IJSRuntime JS
-
-@implements IAsyncDisposable
+@implements IDisposable
 
 <PageTitle>Add media</PageTitle>
 
 <main class="add-media">
 
     <header class="page-heading">
-
         <div>
             <p class="eyebrow">CONTENT OPERATIONS</p>
             <h1>Add media</h1>
         </div>
 
-        @* Visual role selector for the prototype. *@
+        @* Prototype display only; this does not change authorization. *@
         <div class="role-selector">
             <label for="view-as">View as</label>
 
-            <select id="view-as" @bind="selectedView">
-                <option value="Staff Member">Staff Member</option>
-                <option value="Main Admin">Main Admin</option>
+            <select id="view-as"
+                    @bind="selectedView"
+                    disabled="@uploading">
+                <option>Staff Member</option>
+                <option>Main Admin</option>
             </select>
         </div>
-
     </header>
 
+    @if (errors.Count > 0)
+    {
+        <div class="validation-banner" role="alert">
+            <strong>
+                The submission could not be completed:
+            </strong>
+
+            <ul>
+                @foreach (var error in errors)
+                {
+                    <li>@error</li>
+                }
+            </ul>
+        </div>
+    }
+
+    @if (savedRequest is not null)
+    {
+        <div class="validation-notice" role="status">
+            <strong>
+                Submitted for approval — request #@savedRequest.Id
+            </strong>
+
+            <p>
+                Status: Pending. This item will appear in the media
+                list only after Main Admin approval.
+            </p>
+        </div>
+    }
+
     <section class="media-panel">
+
         <h2>Media library entry</h2>
 
         <p>
@@ -41,235 +73,258 @@
             then enter all three language versions.
         </p>
 
-        @* File selection and technologies share the same row. *@
-        <div class="media-options">
-
-            <div class="field">
-                <label for="media-file">
-                    Picture, video or 3D model
-                </label>
-
-                <InputFile id="media-file"
-                           @ref="fileInput"
-                           OnChange="OnFileSelected" />
-
-                @* Display the selected file inside the form. *@
-                @if (selectedFile is not null)
-                {
-                    @if (!string.IsNullOrEmpty(previewError))
-                    {
-                        <p role="alert">@previewError</p>
-                    }
-                    else if (!string.IsNullOrEmpty(previewUrl))
-                    {
-                        <MediaFilePreview Url="@previewUrl"
-                                          ContentType="@selectedFile.ContentType"
-                                          FileName="@selectedFile.Name" />
-                    }
-
-                    <small>
-                        @selectedFile.Name
-                        — @selectedFile.Size.ToString("N0") bytes
-                    </small>
-                }
-            </div>
-
-            <fieldset class="technology-section">
-                <legend>Technologies</legend>
-
-                @* Temporary example choices from the Canva template. *@
-                <div class="technology-options">
-
-                    <label class="technology-option">
-                        <input type="checkbox" value="Mesh boom" />
-                        Mesh boom
-                    </label>
-
-                    <label class="technology-option">
-                        <input type="checkbox" value="Removal unit" />
-                        Removal unit
-                    </label>
-
-                    <label class="technology-option">
-                        <input type="checkbox" value="Collection system" />
-                        Collection system
-                    </label>
-
-                </div>
-            </fieldset>
-
-        </div>
-
-        @* Each language has its own title and description. *@
-        <div class="language-sections">
-
-            <fieldset class="language-section">
-                <legend>English</legend>
-
-                <div class="field">
-                    <label for="title-en">Title (required)</label>
-                    <input id="title-en" type="text" required />
-                </div>
-
-                <div class="field">
-                    <label for="description-en">Description</label>
-                    <textarea id="description-en" rows="5"></textarea>
-                </div>
-            </fieldset>
-
-            <fieldset class="language-section">
-                <legend>Español</legend>
-
-                <div class="field">
-                    <label for="title-es">Title (required)</label>
-                    <input id="title-es" type="text" required />
-                </div>
-
-                <div class="field">
-                    <label for="description-es">Description</label>
-                    <textarea id="description-es" rows="5"></textarea>
-                </div>
-            </fieldset>
-
-            <fieldset class="language-section">
-                <legend>Français</legend>
-
-                <div class="field">
-                    <label for="title-fr">Title (required)</label>
-                    <input id="title-fr" type="text" required />
-                </div>
-
-                <div class="field">
-                    <label for="description-fr">Description</label>
-                    <textarea id="description-fr" rows="5"></textarea>
-                </div>
-            </fieldset>
-
-        </div>
-
-        <p class="helper">
-            Descriptions are optional. If you enter one,
-            complete all three languages.
-        </p>
-
-        @* Submission stays disabled until validation and upload are connected. *@
-        <footer class="form-actions">
-            <p>
-                Submitting creates a pending change request.
-                Nothing is published until approval.
+        @if (loading)
+        {
+            <p role="status">
+                Loading technologies and upload settings...
             </p>
+        }
 
-            <button type="button" disabled>
-                Submit change request
-            </button>
-        </footer>
+        @if (optionsErrors.Count > 0)
+        {
+            <div class="options-error" role="alert">
+                @foreach (var error in optionsErrors)
+                {
+                    <p>@error</p>
+                }
 
+                <button type="button"
+                        @onclick="LoadOptionsAsync"
+                        disabled="@(loading || uploading || savedRequest is not null)">
+                    Reload options
+                </button>
+            </div>
+        }
+
+        @* Always render the form, including when API options fail. *@
+        <form @onsubmit="SubmitAsync"
+              @onsubmit:preventDefault
+              novalidate>
+
+            <MediaForm Data="@formData"
+                       Rules="@rules"
+                       Technologies="@technologies"
+                       Busy="@(uploading || savedRequest is not null)"
+                       FileChanged="OnFileChanged" />
+
+            <footer class="form-actions">
+                <p>
+                    Submitting creates a pending change request.
+                    Nothing is published until approval.
+                </p>
+
+                @if (uploading)
+                {
+                    <p role="status" aria-live="polite">
+                        Uploading and submitting your change request.
+                        Please wait...
+                    </p>
+                }
+
+                <button type="submit"
+                        disabled="@(uploading || loading || savedRequest is not null)">
+                    @(uploading
+                        ? "Uploading..."
+                        : savedRequest is not null
+                            ? "Submitted for approval"
+                            : "Submit change request")
+                </button>
+            </footer>
+
+        </form>
     </section>
 
 </main>
 
 @code {
-    // Available technologies and current selections.
+    private readonly MediaFormData formData = new();
+    private readonly CancellationTokenSource lifetime = new();
+
     private List<TechnologyDto> technologies = new();
-    private HashSet<string> selectedTechnologyTypes = new();
+    private List<MediaUploadRuleDto> rules = new();
 
-    private bool loadingTechnologies = true;
-    private string? technologyError;
+    private List<string> errors = new();
+    private readonly List<string> optionsErrors = new();
 
-    // File metadata and the temporary browser preview.
-    private InputFile? fileInput;
     private IBrowserFile? selectedFile;
-    private IJSObjectReference? previewModule;
+    private ChangeRequestDto? savedRequest;
 
-    private string previewUrl = "";
-    private string? previewError;
+    private bool loading;
+    private bool uploading;
+
     private string selectedView = "Staff Member";
 
-    protected override async Task OnInitializedAsync()
+    protected override Task OnInitializedAsync()
     {
-        try
-        {
-            technologies = await TechnologyService.GetManyAsync();
-        }
-        catch (HttpRequestException)
-        {
-            technologyError =
-                "Could not load technologies. Check that the API is running.";
-        }
-        catch (TaskCanceledException)
-        {
-            technologyError =
-                "Loading technologies timed out. Please reload the page.";
-        }
-        finally
-        {
-            loadingTechnologies = false;
-        }
+        return LoadOptionsAsync();
     }
 
-    // Add checked technologies and remove unchecked ones.
-    private void SetTechnology(string type, bool isSelected)
+    private async Task LoadOptionsAsync()
     {
-        if (isSelected)
-        {
-            selectedTechnologyTypes.Add(type);
-        }
-        else
-        {
-            selectedTechnologyTypes.Remove(type);
-        }
-    }
-
-    // Create a browser preview without uploading the file.
-    private async Task OnFileSelected(InputFileChangeEventArgs args)
-    {
-        selectedFile = args.File;
-        previewError = null;
-        previewUrl = "";
-
-        try
-        {
-            if (previewModule is null)
-            {
-                previewModule =
-                    await JS.InvokeAsync<IJSObjectReference>(
-                        "import",
-                        "./js/mediaPreview.js");
-            }
-
-            previewUrl = await previewModule.InvokeAsync<string>(
-                "createPreview",
-                fileInput!.Element);
-        }
-        catch (JSException)
-        {
-            previewError =
-                "Could not display the preview. Please select the file again.";
-        }
-    }
-
-    // Release the temporary preview when leaving the page.
-    public async ValueTask DisposeAsync()
-    {
-        if (previewModule is null)
+        if (loading || uploading || savedRequest is not null)
         {
             return;
         }
 
+        loading = true;
+        optionsErrors.Clear();
+
         try
         {
-            if (fileInput is not null)
+            technologies = new();
+            rules = new();
+
+            // Load technology choices.
+            try
             {
-                await previewModule.InvokeVoidAsync(
-                    "releasePreview",
-                    fileInput.Element);
+                technologies =
+                    (await TechnologyService.GetManyAsync(
+                        lifetime.Token))
+                    .Where(item =>
+                        !string.IsNullOrWhiteSpace(item.Type))
+                    .DistinctBy(item => item.Type)
+                    .ToList();
+
+                if (technologies.Count == 0)
+                {
+                    optionsErrors.Add(
+                        "No technologies are available. Check the API seed data.");
+                }
+            }
+            catch (Exception ex) when (
+                ex is HttpRequestException or
+                System.Text.Json.JsonException or
+                TaskCanceledException)
+            {
+                if (!lifetime.IsCancellationRequested)
+                {
+                    optionsErrors.Add(
+                        "Could not load technologies. Check that WebApi and Data Server are running.");
+                }
             }
 
-            await previewModule.DisposeAsync();
+            if (lifetime.IsCancellationRequested)
+            {
+                return;
+            }
+
+            // Load formats and upload limits from the API.
+            try
+            {
+                rules =
+                    (await MediaService.GetUploadRulesAsync(
+                        lifetime.Token))
+                    .Where(rule =>
+                        rule.MaxBytes > 0 &&
+                        rule.AllowedExtensions.Count > 0)
+                    .ToList();
+
+                if (rules.Count == 0)
+                {
+                    optionsErrors.Add(
+                        "No upload rules are configured on the API.");
+                }
+            }
+            catch (Exception ex) when (
+                ex is HttpRequestException or
+                System.Text.Json.JsonException or
+                TaskCanceledException)
+            {
+                if (!lifetime.IsCancellationRequested)
+                {
+                    optionsErrors.Add(
+                        "Could not load upload limits. Check WebApi and the upload-rules endpoint.");
+                }
+            }
         }
-        catch (JSDisconnectedException)
+        finally
         {
-            // The browser connection has already closed.
+            loading = false;
         }
+    }
+
+    private void OnFileChanged(IBrowserFile? file)
+    {
+        selectedFile = file;
+        errors.Clear();
+    }
+
+    private async Task SubmitAsync()
+    {
+        if (uploading ||
+            savedRequest is not null ||
+            lifetime.IsCancellationRequested)
+        {
+            return;
+        }
+
+        // Validate before opening or uploading the file.
+        errors = formData.Validate(
+            selectedFile?.Name,
+            selectedFile?.Size ?? 0,
+            rules,
+            technologies.Select(item => item.Type));
+
+        if (optionsErrors.Count > 0)
+        {
+            errors.Add(
+                "Resolve the option-loading errors before submitting.");
+        }
+
+        if (errors.Count > 0)
+        {
+            return;
+        }
+
+        MediaUploadRuleDto rule = MediaFormData.FindRule(
+            selectedFile!.Name,
+            rules)!;
+
+        uploading = true;
+
+        try
+        {
+            MediaSubmissionResult result =
+                await MediaService.AddMediaAsync(
+                    formData,
+                    selectedFile,
+                    rule.MaxBytes,
+                    lifetime.Token);
+
+            if (result.Request is not null)
+            {
+                savedRequest = result.Request;
+            }
+            else
+            {
+                errors = result.Errors;
+            }
+        }
+        catch (IOException)
+        {
+            errors.Add(
+                "The file could not be read within its allowed size. Select it again and check the displayed limit.");
+        }
+        catch (Exception ex) when (
+            ex is HttpRequestException or
+            TaskCanceledException or
+            System.Text.Json.JsonException)
+        {
+            if (!lifetime.IsCancellationRequested)
+            {
+                errors.Add(
+                    "The submission could not be confirmed. Check your connection and My requests before retrying; the server may have received it.");
+            }
+        }
+        finally
+        {
+            uploading = false;
+        }
+    }
+
+    public void Dispose()
+    {
+        lifetime.Cancel();
+        lifetime.Dispose();
     }
 }
