@@ -1,8 +1,13 @@
 @page "/media/add"
 
+@using ApiContracts.Machine
+@using Dashboard.Services
+@inject HttpMachineService TechnologyService
+
 <PageTitle>Add media</PageTitle>
 
 <main class="add-media">
+
     <header class="page-heading">
         <p class="eyebrow">SEAWEED BY DESMI</p>
         <h1>Add media</h1>
@@ -16,23 +21,64 @@
             then enter all three language versions.
         </p>
 
-        <div class="field">
-            <label for="media-file">Picture, video or 3D model</label>
-            <input id="media-file" type="file" />
+        @* File selection and technologies share the same row. *@
+        <div class="media-options">
+
+            <div class="field">
+                <label for="media-file">
+                    Picture, video or 3D model
+                </label>
+
+                <input id="media-file" type="file" />
+            </div>
+
+            <fieldset class="technology-section">
+                <legend>Technologies</legend>
+
+                @if (loadingTechnologies)
+                {
+                    <p>Loading technologies...</p>
+                }
+                else if (!string.IsNullOrEmpty(technologyError))
+                {
+                    <p role="alert">@technologyError</p>
+                }
+                else if (technologies.Count == 0)
+                {
+                    <p>No technologies are available.</p>
+                }
+                else
+                {
+                    <div class="technology-options">
+
+                        @foreach (var technology in technologies)
+                        {
+                            <label class="technology-option"
+                                   @key="technology.Code">
+
+                                <input type="checkbox"
+                                       checked="@selectedTechnologyCodes.Contains(technology.Code)"
+                                       @onchange="() => ToggleTechnology(technology.Code)" />
+
+                                @technology.Name
+                            </label>
+                        }
+
+                    </div>
+                }
+            </fieldset>
+
         </div>
 
-        <fieldset class="technology-section">
-            <legend>Technologies</legend>
-            <p>Technology options will load here.</p>
-        </fieldset>
-
+        @* Each language has its own title and description. *@
         <div class="language-sections">
+
             <fieldset class="language-section">
                 <legend>English</legend>
 
                 <div class="field">
                     <label for="title-en">Title (required)</label>
-                    <input id="title-en" type="text" />
+                    <input id="title-en" type="text" required />
                 </div>
 
                 <div class="field">
@@ -46,7 +92,7 @@
 
                 <div class="field">
                     <label for="title-es">Title (required)</label>
-                    <input id="title-es" type="text" />
+                    <input id="title-es" type="text" required />
                 </div>
 
                 <div class="field">
@@ -60,7 +106,7 @@
 
                 <div class="field">
                     <label for="title-fr">Title (required)</label>
-                    <input id="title-fr" type="text" />
+                    <input id="title-fr" type="text" required />
                 </div>
 
                 <div class="field">
@@ -68,6 +114,7 @@
                     <textarea id="description-fr" rows="5"></textarea>
                 </div>
             </fieldset>
+
         </div>
 
         <p class="helper">
@@ -75,6 +122,7 @@
             complete all three languages.
         </p>
 
+        @* Submission stays disabled until the upload is connected. *@
         <footer class="form-actions">
             <p>
                 Submitting creates a pending change request.
@@ -85,5 +133,49 @@
                 Submit change request
             </button>
         </footer>
+
     </section>
+
 </main>
+
+@code {
+    // The existing project calls technologies "machines".
+    private List<MachineDto> technologies = new();
+
+    // A HashSet stores each selected technology code only once.
+    private HashSet<string> selectedTechnologyCodes = new();
+
+    private bool loadingTechnologies = true;
+    private string? technologyError;
+
+    // Load the available technologies when the page opens.
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            technologies = await TechnologyService.GetManyAsync();
+        }
+        catch (HttpRequestException)
+        {
+            technologyError =
+                "Could not load technologies. Check that the API is running.";
+        }
+        finally
+        {
+            loadingTechnologies = false;
+        }
+    }
+
+    // Add a checked technology or remove an unchecked one.
+    private void ToggleTechnology(string code)
+    {
+        if (selectedTechnologyCodes.Contains(code))
+        {
+            selectedTechnologyCodes.Remove(code);
+        }
+        else
+        {
+            selectedTechnologyCodes.Add(code);
+        }
+    }
+}
