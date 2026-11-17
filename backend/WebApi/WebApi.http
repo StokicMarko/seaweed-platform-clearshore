@@ -5,7 +5,7 @@ Accept: application/json
 
 ###
 
-GET {{WebApi_HostAddress}}/api/media?machine=mesh-boom-hd
+GET {{WebApi_HostAddress}}/api/media?technology=mesh-boom-hd
 Accept: application/json
 
 ###
@@ -24,7 +24,7 @@ Accept: application/json
 
 ###
 
-GET {{WebApi_HostAddress}}/api/machines
+GET {{WebApi_HostAddress}}/api/technologies
 Accept: application/json
 
 

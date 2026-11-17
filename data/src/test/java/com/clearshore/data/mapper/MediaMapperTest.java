@@ -1,6 +1,6 @@
 package com.clearshore.data.mapper;
 
-import com.clearshore.data.entity.Machine;
+import com.clearshore.data.entity.Technology;
 import com.clearshore.data.entity.Media;
 import com.clearshore.data.entity.MediaType;
 import com.clearshore.data.generated.MediaProto;
@@ -13,8 +13,8 @@ class MediaMapperTest {
 
     @Test
     void mapsMediaWithMachineAndDescription() {
-        Machine machine = new Machine("mesh-boom-hd", "Mesh Boom HD");
-        Media media = new Media(machine, MediaType.VIDEO,
+        Technology technology = new Technology("mesh-boom-hd");
+        Media media = new Media(technology, MediaType.VIDEO,
                 "Boom in action", "Barrera en acción", "Barrage en action",
                 "Installed in 2025", "Instalada en 2025", "Installé en 2025",
                 "boom.mp4", "3f2a-boom.mp4", "video/mp4");
@@ -24,7 +24,7 @@ class MediaMapperTest {
         assertEquals(MediaProto.MediaType.MEDIA_TYPE_VIDEO, proto.getMediaType());
         assertEquals("Barrera en acción", proto.getTitle().getEs());
         assertEquals("Installé en 2025", proto.getDescription().getFr());
-        assertEquals("mesh-boom-hd", proto.getMachine().getCode());
+        assertEquals("mesh-boom-hd", proto.getTechnology().getType());
         assertEquals("boom.mp4", proto.getOriginalFileName());
         assertEquals(media.getPublishedAt().getEpochSecond(), proto.getPublishedAt().getSeconds());
     }
@@ -38,7 +38,7 @@ class MediaMapperTest {
 
         MediaProto.Media proto = MediaMapper.toProto(media);
 
-        assertFalse(proto.hasMachine());
+        assertFalse(proto.hasTechnology());
         assertFalse(proto.hasDescription());
     }
 }

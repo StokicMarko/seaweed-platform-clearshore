@@ -14,9 +14,9 @@ namespace WebApi.Controllers;
 public class MediaController(IMediaRepository mediaRepository, IMediaSubmissionService submissionService) : ControllerBase
 {
     [HttpGet]
-    public async Task<ActionResult<List<MediaDto>>> GetMany([FromQuery] string? machine)
+    public async Task<ActionResult<List<MediaDto>>> GetMany([FromQuery] string? technology)
     {
-        List<Media> media = await mediaRepository.GetManyAsync(machine);
+        List<Media> media = await mediaRepository.GetManyAsync(technology);
         return media.Select(DtoMapper.ToDto).ToList();
     }
 
