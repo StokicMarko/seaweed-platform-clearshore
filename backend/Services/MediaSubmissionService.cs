@@ -18,7 +18,7 @@ public class MediaSubmissionService(
         ValidationCollector validation = new();
         MediaType? mediaType = fileValidator.Check(command.FileName, command.Length, validation);
         LocalizedTextValidator.Required("Title", command.Title, validation);
-        LocalizedTextValidator.OptionalAllOrNone("Description", command.Description, validation);
+        LocalizedTextValidator.Required("Description", command.Description, validation);
         await CheckTechnologiesAsync(command.TechnologyTypes, validation);
 
         validation.ThrowIfAny();

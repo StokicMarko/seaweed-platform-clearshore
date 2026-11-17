@@ -1,0 +1,354 @@
+@namespace Dashboard.Components.Pages
+@using ApiContracts.Media
+@using ApiContracts.Technology
+@using Dashboard.Models
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.JSInterop
+@inject IJSRuntime JS
+@implements IAsyncDisposable
+
+@* Disable all fields while uploading. *@
+<fieldset class="submission-fields" disabled="@Busy">
+
+    <div class="media-options">
+
+        <div class="field">
+            <label for="media-file">
+                Picture, video or 3D model
+            </label>
+
+            <p class="helper" id="upload-rules">
+                @if (Rules.Count == 0)
+                {
+                    <span>
+                        Upload settings must load before choosing a file.
+                    </span>
+                }
+
+                @foreach (var rule in Rules)
+                {
+                    <span class="upload-rule">
+                        @DisplayType(rule.MediaType):
+                        @string.Join(", ", rule.AllowedExtensions)
+                        · up to
+                        @((rule.MaxBytes / 1048576d).ToString("0.##"))
+                        MiB
+                    </span>
+                }
+            </p>
+
+            <InputFile id="media-file"
+                       @ref="fileInput"
+                       OnChange="OnFileSelected"
+                       accept=".jpg,.jpeg,.png,.webp,.mp4,.glb"
+                       disabled="@Busy"
+                       aria-describedby="upload-rules" />
+
+            @if (selectedFile is not null)
+            {
+                <small>
+                    @selectedFile.Name —
+                    @selectedFile.Size.ToString("N0") bytes
+                </small>
+
+                @if (selectedRule is not null)
+                {
+                    <small>
+                        Media type:
+                        @DisplayType(selectedRule.MediaType)
+                    </small>
+                }
+
+                @if (!string.IsNullOrEmpty(fileError))
+                {
+                    <p class="file-error" role="alert">
+                        @fileError
+                    </p>
+                }
+                else if (!string.IsNullOrEmpty(previewUrl))
+                {
+                    <MediaFilePreview
+                        Url="@previewUrl"
+                        ContentType="@previewContentType"
+                        FileName="@selectedFile.Name" />
+                }
+            }
+        </div>
+
+        @* Technology choices sit below the preview. *@
+        <fieldset class="technology-section">
+            <legend>
+                Technologies (select one or more)
+            </legend>
+
+            @if (Technologies.Count == 0)
+            {
+                <p class="helper">
+                    No technology choices are loaded.
+                    Use Reload options above.
+                </p>
+            }
+
+            <div class="technology-options">
+                @foreach (var technology in Technologies)
+                {
+                    <label class="technology-option"
+                           @key="technology.Type">
+
+                        <input type="checkbox"
+                               checked="@Data.TechnologyTypes.Contains(technology.Type)"
+                               @onchange="args => SelectTechnology(technology.Type, args.Value is true)" />
+
+                        @technology.Type
+                    </label>
+                }
+            </div>
+        </fieldset>
+
+    </div>
+
+    @* Each language occupies one full-width row. *@
+    <div class="language-sections">
+
+        <fieldset class="language-section">
+            <legend>English</legend>
+
+            <div class="field">
+                <label for="title-en">
+                    Title (required)
+                </label>
+
+                <input id="title-en"
+                       @bind="Data.TitleEn"
+                       @bind:event="oninput"
+                       required />
+            </div>
+
+            <div class="field">
+                <label for="description-en">
+                    Description (required)
+                </label>
+
+                <textarea id="description-en"
+                          rows="5"
+                          @bind="Data.DescriptionEn"
+                          @bind:event="oninput"
+                          required></textarea>
+            </div>
+        </fieldset>
+
+        <fieldset class="language-section">
+            <legend>Español</legend>
+
+            <div class="field">
+                <label for="title-es">
+                    Title (required)
+                </label>
+
+                <input id="title-es"
+                       @bind="Data.TitleEs"
+                       @bind:event="oninput"
+                       required />
+            </div>
+
+            <div class="field">
+                <label for="description-es">
+                    Description (required)
+                </label>
+
+                <textarea id="description-es"
+                          rows="5"
+                          @bind="Data.DescriptionEs"
+                          @bind:event="oninput"
+                          required></textarea>
+            </div>
+        </fieldset>
+
+        <fieldset class="language-section">
+            <legend>Français</legend>
+
+            <div class="field">
+                <label for="title-fr">
+                    Title (required)
+                </label>
+
+                <input id="title-fr"
+                       @bind="Data.TitleFr"
+                       @bind:event="oninput"
+                       required />
+            </div>
+
+            <div class="field">
+                <label for="description-fr">
+                    Description (required)
+                </label>
+
+                <textarea id="description-fr"
+                          rows="5"
+                          @bind="Data.DescriptionFr"
+                          @bind:event="oninput"
+                          required></textarea>
+            </div>
+        </fieldset>
+
+    </div>
+
+    <p class="helper">
+        Titles and descriptions are required in English,
+        Spanish and French.
+    </p>
+
+</fieldset>
+
+@code {
+    [Parameter, EditorRequired]
+    public MediaFormData Data { get; set; } = new();
+
+    [Parameter]
+    public IReadOnlyList<TechnologyDto> Technologies { get; set; }
+        = Array.Empty<TechnologyDto>();
+
+    [Parameter]
+    public IReadOnlyList<MediaUploadRuleDto> Rules { get; set; }
+        = Array.Empty<MediaUploadRuleDto>();
+
+    [Parameter]
+    public bool Busy { get; set; }
+
+    [Parameter]
+    public EventCallback<IBrowserFile?> FileChanged { get; set; }
+
+    private InputFile? fileInput;
+    private IBrowserFile? selectedFile;
+    private MediaUploadRuleDto? selectedRule;
+
+    private IJSObjectReference? previewModule;
+
+    private string previewUrl = "";
+    private string previewContentType = "";
+    private string? fileError;
+
+    private string AcceptedExtensions =>
+        string.Join(
+            ",",
+            Rules.SelectMany(rule => rule.AllowedExtensions)
+                .Distinct());
+
+    private static string DisplayType(string type)
+    {
+        return type == "Model3D" ? "3D model" : type;
+    }
+
+    private void SelectTechnology(string type, bool selected)
+    {
+        if (selected)
+        {
+            Data.TechnologyTypes.Add(type);
+        }
+        else
+        {
+            Data.TechnologyTypes.Remove(type);
+        }
+    }
+
+    private async Task OnFileSelected(
+        InputFileChangeEventArgs args)
+    {
+        selectedFile = args.File;
+
+        await FileChanged.InvokeAsync(selectedFile);
+
+        selectedRule = MediaFormData.FindRule(
+            selectedFile.Name,
+            Rules);
+
+        previewUrl = "";
+
+        if (Rules.Count == 0)
+        {
+            fileError =
+                "Cannot validate this file because upload settings have not loaded. Start WebApi, then click Reload options.";
+        }
+        else if (selectedRule is null)
+        {
+            fileError =
+                "Unsupported file format. Choose one of the formats listed above.";
+        }
+        else if (selectedFile.Size == 0)
+        {
+            fileError = "The selected file is empty.";
+        }
+        else if (selectedFile.Size > selectedRule.MaxBytes)
+        {
+            fileError =
+                $"The file is too large. Maximum: {selectedRule.MaxBytes / 1048576d:0.##} MiB.";
+        }
+        else
+        {
+            fileError = null;
+        }
+
+        try
+        {
+            previewModule ??=
+                await JS.InvokeAsync<IJSObjectReference>(
+                    "import",
+                    "./Js/mediaPreview.js");
+
+            // Remove the previous preview URL.
+            await previewModule.InvokeVoidAsync(
+                "releasePreview",
+                fileInput!.Element);
+
+            if (fileError is not null)
+            {
+                return;
+            }
+
+            // Preview directly in the browser.
+            previewContentType =
+                Path.GetExtension(selectedFile.Name)
+                    .ToLowerInvariant() switch
+                {
+                    ".jpg" or ".jpeg" => "image/jpeg",
+                    ".png" => "image/png",
+                    ".webp" => "image/webp",
+                    ".mp4" => "video/mp4",
+                    _ => "application/octet-stream"
+                };
+
+            previewUrl = await previewModule.InvokeAsync<string>(
+                "createPreview",
+                fileInput.Element);
+        }
+        catch (JSException)
+        {
+            fileError ??=
+                "The preview could not be displayed. Select the file again.";
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (previewModule is null)
+        {
+            return;
+        }
+
+        try
+        {
+            if (fileInput is not null)
+            {
+                await previewModule.InvokeVoidAsync(
+                    "releasePreview",
+                    fileInput.Element);
+            }
+
+            await previewModule.DisposeAsync();
+        }
+        catch (JSDisconnectedException)
+        {
+            // Browser cleanup also handles leaving the page.
+        }
+    }
+}

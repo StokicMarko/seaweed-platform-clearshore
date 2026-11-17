@@ -1,0 +1,35 @@
+<div class="media-preview">
+
+    @if (ContentType.StartsWith("image/"))
+    {
+        <img src="@Url"
+             alt="@FileName"
+             @key="Url" />
+    }
+    else if (ContentType.StartsWith("video/"))
+    {
+        <video src="@Url"
+               controls
+               preload="metadata"
+               @key="Url">
+            Your browser cannot display this video.
+        </video>
+    }
+    else
+    {
+        <p>@FileName</p>
+        <p>No visual preview available.</p>
+    }
+
+</div>
+
+@code {
+    [Parameter]
+    public string Url { get; set; } = "";
+
+    [Parameter]
+    public string ContentType { get; set; } = "";
+
+    [Parameter]
+    public string FileName { get; set; } = "";
+}

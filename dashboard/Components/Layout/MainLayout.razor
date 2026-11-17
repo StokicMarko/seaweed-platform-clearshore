@@ -1,11 +1,67 @@
 ﻿@inherits LayoutComponentBase
 
-<nav>
-    <NavLink href="" Match="NavLinkMatch.All">Home</NavLink>
-    <NavLink href="media">Media</NavLink>
-</nav>
+<div class="dashboard-layout">
 
-@Body
+    <aside class="dashboard-sidebar">
+
+        <img src="images/DesmiSeaweedImage.jpg"
+             alt="Seaweed by DESMI"
+             class="sidebar-logo" />
+        <h2>Admin dashboard</h2>
+
+        <nav aria-label="Dashboard sections">
+
+            <div class="sidebar-link">
+                <NavLink href="" Match="NavLinkMatch.All">
+                    Overview
+                </NavLink>
+            </div>
+
+            <p class="sidebar-group">ADD</p>
+
+            @* Labels for pages that have not been implemented yet. *@
+            <span class="sidebar-unavailable">Add news</span>
+
+            <div class="sidebar-link">
+                <NavLink href="media/add"
+                         Match="NavLinkMatch.All">
+                    Add media
+                </NavLink>
+            </div>
+
+            <p class="sidebar-group">MANAGE</p>
+
+            <span class="sidebar-unavailable">Manage news</span>
+
+            <div class="sidebar-link">
+                <NavLink href="media"
+                         Match="NavLinkMatch.All">
+                    Manage media
+                </NavLink>
+            </div>
+
+            <p class="sidebar-group">COUNTRY &amp; TOTALS</p>
+
+            <span class="sidebar-unavailable">Add country</span>
+            <span class="sidebar-unavailable">Update map data</span>
+            <span class="sidebar-unavailable">Adjust totals</span>
+
+            <span class="sidebar-unavailable">My requests</span>
+
+        </nav>
+
+        <p class="sidebar-footer">
+            A clear path from draft to approval.
+        </p>
+
+    </aside>
+
+    @* The current page appears here, beside the sidebar. *@
+    <div class="dashboard-content">
+        @Body
+    </div>
+
+</div>
 
 <div id="blazor-error-ui" data-nosnippet>
     An unhandled error has occurred.
