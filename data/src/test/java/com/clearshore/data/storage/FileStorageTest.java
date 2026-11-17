@@ -1,14 +1,18 @@
 package com.clearshore.data.storage;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -17,44 +21,78 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class FileStorageTest {
 
-  @TempDir
-  Path folder;
+    @TempDir
+    Path folder;
 
-  @Test
-  void savedFileCanBeReadBackAndDeleted() throws IOException {
-    FileStorage storage = new FileStorage(folder.toString());
-    String name = storage.newStoredFileName("boom.mp4");
+    private FileStorage storage;
 
-    try (OutputStream out = storage.create(name)) {
-      out.write("hello".getBytes(StandardCharsets.UTF_8));
-    }
-    try (InputStream in = storage.open(name)) {
-      assertEquals("hello", new String(in.readAllBytes(), StandardCharsets.UTF_8));
+    @BeforeEach
+    void setUp() throws IOException {
+        storage = new FileStorage(folder.toString());
     }
 
-    storage.delete(name);
-    assertFalse(java.nio.file.Files.exists(folder.resolve(name)));
-    storage.delete(name); // deleting twice is fine
-  }
+    @Test
+    void savedBytesCanBeReadBack() throws IOException {
+        byte[] content = {1, 2, 3, 4, 5};
+        String name = storage.newStoredFileName("boom.mp4");
 
-  @Test
-  void storedNamesAreUniqueAndKeepOnlyASafeExtension() throws IOException {
-    FileStorage storage = new FileStorage(folder.toString());
+        try (OutputStream output = storage.create(name)) {
+            output.write(content);
+        }
 
-    String first = storage.newStoredFileName("Photo.JPG");
-    String second = storage.newStoredFileName("Photo.JPG");
+        try (InputStream input = storage.open(name)) {
+            assertArrayEquals(content, input.readAllBytes());
+        }
+    }
 
-    assertNotEquals(first, second);
-    assertTrue(first.endsWith(".jpg"));
-    assertFalse(storage.newStoredFileName("../../evil").contains("/"));
-    assertFalse(storage.newStoredFileName("noextension").contains("."));
-  }
+    @Test
+    void storedNameKeepsOnlyTheExtension() {
+        String name = storage.newStoredFileName("My Holiday Photo.PNG");
 
-  @Test
-  void refusesToLeaveTheMediaFolder() throws IOException {
-    FileStorage storage = new FileStorage(folder.toString());
+        assertTrue(name.endsWith(".png"));
+        assertFalse(name.contains("Holiday"));
+    }
 
-    assertThrows(IllegalArgumentException.class, () -> storage.open("../secret.txt"));
-    assertThrows(IllegalArgumentException.class, () -> storage.delete("../secret.txt"));
-  }
+    @Test
+    void storedNamesAreUnique() {
+        assertNotEquals(storage.newStoredFileName("a.png"), storage.newStoredFileName("a.png"));
+    }
+
+    @Test
+    void storedNameDropsAnyFolderPartOfTheUploadedName() {
+        String name = storage.newStoredFileName("../../etc/passwd.txt");
+
+        assertTrue(name.endsWith(".txt"));
+        assertFalse(name.contains("/"));
+        assertFalse(name.contains(".."));
+    }
+
+    @Test
+    void deleteRemovesTheFile() throws IOException {
+        String name = storage.newStoredFileName("a.png");
+        storage.create(name).close();
+
+        storage.delete(name);
+
+        assertThrows(NoSuchFileException.class, () -> storage.open(name));
+    }
+
+    @Test
+    void deletingAMissingFileIsNotAnError() {
+        assertDoesNotThrow(() -> storage.delete("missing.png"));
+    }
+
+    @Test
+    void namesOutsideTheFolderAreRejected() {
+        assertThrows(IllegalArgumentException.class, () -> storage.delete("../x"));
+        assertThrows(IllegalArgumentException.class, () -> storage.create("../x"));
+    }
+
+    @Test
+    void creatingTheSameNameTwiceFails() throws IOException {
+        storage.create("a.png").close();
+
+        assertThrows(IOException.class, () -> storage.create("a.png"));
+        assertEquals(1, Files.list(folder).count());
+    }
 }
