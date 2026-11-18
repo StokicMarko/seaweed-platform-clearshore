@@ -43,8 +43,7 @@ public class MediaSubmissionService(
         return await submitter.SubmitAsync(ChangeTarget.Media, ChangeAction.Create, submission, [storedFileName]);
     }
 
-    // at least one technology, and every code must exist.
-    // The docs call them technologies, but the code and database call them machines.(check meeting)
+    // at least one technology, and every type must exist.
     private async Task CheckTechnologiesAsync(List<string> types, ValidationCollector validation)
     {
         if (types.Count == 0)

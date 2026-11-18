@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Set;
 
@@ -32,15 +33,25 @@ class MediaItemMapperTest {
     }
 
     @Test
-    void leavesTechnologyAndDescriptionEmptyWhenMissing() {
-        MediaItem mediaItem = new MediaItem(Set.of(), MediaType.IMAGE,
-                "Beach", "Playa", "Plage",
-                null, null, null,
-                "beach.jpg", "9c1d-beach.jpg", "image/jpeg");
+    void leavesDescriptionEmptyWhenMissing() {
+        MediaItem mediaItem = new MediaItem(Set.of(new Technology("mesh-boom-hd")), MediaType.IMAGE,
+            "Beach", "Playa", "Plage",
+            null, null, null,
+            "beach.jpg", "9c1d-beach.jpg", "image/jpeg");
 
         MediaProto.Media proto = MediaMapper.toProto(mediaItem);
 
-        assertEquals(0, proto.getTechnologiesCount());
+        assertEquals(1, proto.getTechnologiesCount());
         assertFalse(proto.hasDescription());
+    }
+
+    @Test
+    void rejectsMediaWithoutTechnologies() {
+        assertThrows(IllegalArgumentException.class, () -> new MediaItem(Set.of(), MediaType.IMAGE,
+            "Beach", "Playa", "Plage", null, null, null,
+            "beach.jpg", "9c1d-beach.jpg", "image/jpeg"));
+        assertThrows(IllegalArgumentException.class, () -> new MediaItem(null, MediaType.IMAGE,
+            "Beach", "Playa", "Plage", null, null, null,
+            "beach.jpg", "9c1d-beach.jpg", "image/jpeg"));
     }
 }

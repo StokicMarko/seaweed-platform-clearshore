@@ -68,6 +68,9 @@ public class MediaItem {
                      String titleEn, String titleEs, String titleFr,
                      String descriptionEn, String descriptionEs, String descriptionFr,
                      String originalFileName, String storedFileName, String contentType) {
+        if (technologies == null || technologies.isEmpty()) {
+            throw new IllegalArgumentException("A media item needs at least one technology");
+        }
         this.technologies = new LinkedHashSet<>(technologies);
         this.mediaType = mediaType;
         this.titleEn = titleEn;
