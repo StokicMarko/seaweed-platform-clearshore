@@ -5,7 +5,7 @@ namespace ApiContracts.Media;
 public class MediaDto
 {
     public int Id { get; set; }
-    public TechnologyDto? Technology { get; set; }
+    public List<TechnologyDto> Technologies { get; set; } = [];
     public required string MediaType { get; set; }
     public required LocalizedTextDto Title { get; set; }
     public LocalizedTextDto? Description { get; set; }

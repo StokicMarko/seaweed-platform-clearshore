@@ -1,6 +1,6 @@
 package com.clearshore.data.service;
 
-import com.clearshore.data.entity.Media;
+import com.clearshore.data.entity.MediaItem;
 import com.clearshore.data.generated.CommonProto;
 import com.clearshore.data.generated.MediaDataGrpc;
 import com.clearshore.data.generated.MediaProto;
@@ -35,16 +35,16 @@ public class MediaGrpcService extends MediaDataGrpc.MediaDataImplBase {
     @Override
     public void getMany(MediaProto.GetManyMediaRequest request,
                         StreamObserver<MediaProto.MediaList> responseObserver) {
-        List<Media> media = request.hasTechnologyType()
-                ? mediaRepository.findByTechnologyTypeOrderByPublishedAtDesc(request.getTechnologyType())
+        List<MediaItem> mediaItems = request.hasTechnologyType()
+                ? mediaRepository.findByTechnologyType(request.getTechnologyType())
                 : mediaRepository.findAllByOrderByPublishedAtDesc();
-        responseObserver.onNext(MediaMapper.toProtoList(media));
+        responseObserver.onNext(MediaMapper.toProtoList(mediaItems));
         responseObserver.onCompleted();
     }
 
     @Override
     public void getSingle(MediaProto.MediaId request, StreamObserver<MediaProto.Media> responseObserver) {
-        Optional<Media> media = mediaRepository.findById(request.getId());
+        Optional<MediaItem> media = mediaRepository.findById(request.getId());
         if (media.isEmpty()) {
             responseObserver.onError(notFound("Media " + request.getId() + " not found"));
             return;
@@ -55,7 +55,7 @@ public class MediaGrpcService extends MediaDataGrpc.MediaDataImplBase {
 
     @Override
     public void readFile(MediaProto.MediaId request, StreamObserver<CommonProto.FileChunk> responseObserver) {
-        Optional<Media> media = mediaRepository.findById(request.getId());
+        Optional<MediaItem> media = mediaRepository.findById(request.getId());
         if (media.isEmpty()) {
             responseObserver.onError(notFound("Media " + request.getId() + " not found"));
             return;

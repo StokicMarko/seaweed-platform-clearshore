@@ -3,7 +3,7 @@ namespace Entities;
 public class Media
 {
     public int Id { get; set; }
-    public Technology? Technology { get; set; }
+   public List<Technology> Technologies { get; set; } = [];
     public MediaType MediaType { get; set; }
     public required LocalizedText Title { get; set; }
     public LocalizedText? Description { get; set; }

@@ -25,7 +25,7 @@ enum MediaType {
 
 message Media {
   int32 id = 1;
-  Technology technology = 2;
+  repeated Technology technologies = 2;
   MediaType media_type = 3;
   LocalizedText title = 4;
   LocalizedText description = 5;

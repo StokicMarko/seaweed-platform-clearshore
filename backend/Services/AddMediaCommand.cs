@@ -12,9 +12,9 @@ public class AddMediaCommand
     public long Length { get; set; }
     public string? ContentType { get; set; }
 
-    /// Technology codes (filter) (the code's machine codes, check meeting). At least one.
-    public List<string> TechnologyCodes { get; set; } = [];
-
+    /// Technology types (filter). At least one.
+    public List<string> TechnologyTypes { get; set; } = [];
+    
     // Nullable on purpose - service reports missing values as validation errors ;)))) im the best im tired
     public LocalizedText? Title { get; set; }
     public LocalizedText? Description { get; set; }

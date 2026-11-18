@@ -1,10 +1,9 @@
 package com.clearshore.data.entity;
 
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.util.Objects;
 
 @Entity
 @Table(name = "technology")
@@ -24,4 +23,11 @@ public class Technology {
     public String getType() {
         return type;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        return o instanceof Technology t && Objects.equals(type, t.getType());
+    }
+    @Override
+    public int hashCode() { return Objects.hashCode(type); }
 }
