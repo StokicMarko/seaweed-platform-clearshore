@@ -1,0 +1,179 @@
+/* Remove the outer fieldset's default spacing. */
+.submission-fields {
+    box-sizing: border-box;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+/* File picker, preview and technologies appear vertically. */
+.media-options {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    margin: 28px 0;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+    margin-bottom: 20px;
+}
+
+.media-options .field {
+    margin-bottom: 0;
+}
+
+label,
+legend {
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+/* Text fields and file picker. */
+input,
+textarea,
+.field ::deep input[type="file"] {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    padding: 12px 14px;
+    border: 1px solid #bdcce0;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #172c50;
+    font: inherit;
+    line-height: 1.5;
+}
+
+textarea {
+    min-height: 180px;
+    resize: vertical;
+}
+
+input:focus-visible,
+textarea:focus-visible,
+.field ::deep input[type="file"]:focus-visible {
+    outline: 3px solid #8ccaff;
+    outline-offset: 3px;
+    border-color: #2878c7;
+}
+
+.field ::deep input[type="file"]::file-selector-button {
+    margin-right: 12px;
+    padding: 8px 12px;
+    border: 1px solid #cad6e6;
+    border-radius: 5px;
+    background: #edf3fb;
+    color: #183c78;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* Technology choices. */
+.technology-section {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: none;
+}
+
+.technology-section legend {
+    padding: 0;
+}
+
+.technology-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 24px;
+    margin-top: 10px;
+}
+
+.technology-option {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    min-height: 32px;
+    font-weight: 400;
+    cursor: pointer;
+}
+
+.technology-option input {
+    flex-shrink: 0;
+    width: 17px;
+    height: 17px;
+    margin: 0;
+    padding: 0;
+    accent-color: #58b7ff;
+    cursor: pointer;
+}
+
+/* One language per row. */
+.language-sections {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    margin: 28px 0 20px;
+}
+
+.language-section {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+    padding: 20px 22px 2px;
+    border: 1px solid #5273a3;
+    border-radius: 10px;
+    background: #224983;
+}
+
+.language-section legend {
+    padding: 0 8px;
+    font-size: 15px;
+    font-weight: 650;
+}
+
+/* Supporting text and file errors. */
+.helper {
+    margin: 0;
+    color: #dce7f6;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.upload-rule {
+    display: block;
+}
+
+small {
+    color: #dce7f6;
+    font-size: 12px;
+    overflow-wrap: anywhere;
+}
+
+.file-error {
+    margin: 0;
+    padding: 10px 12px;
+    border: 1px solid #ffc5bd;
+    border-radius: 6px;
+    background: #7d2528;
+    color: #ffffff;
+}
+
+@media (max-width: 850px) {
+    .language-section {
+        padding: 16px 16px 0;
+    }
+}
+
+@media (max-width: 420px) {
+    .technology-options {
+        flex-direction: column;
+        gap: 8px;
+    }
+}

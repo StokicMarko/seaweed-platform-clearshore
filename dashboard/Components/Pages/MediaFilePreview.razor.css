@@ -1,0 +1,47 @@
+/* Large preview underneath the file picker. */
+.media-preview {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 720px;
+    height: 360px;
+    margin: 8px 0 0;
+    padding: 12px;
+    border: 1px solid #5273a3;
+    border-radius: 10px;
+    background: #122e5b;
+    overflow: hidden;
+    font-family: "Segoe UI", Arial, sans-serif;
+}
+
+/* Display the whole image or video without cropping. */
+.media-preview img,
+.media-preview video {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 4px;
+}
+
+.media-preview p {
+    box-sizing: border-box;
+    max-width: 100%;
+    margin: 6px 0;
+    padding: 0 12px;
+    color: #e5edf9;
+    font-size: 14px;
+    line-height: 1.5;
+    text-align: center;
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 700px) {
+    .media-preview {
+        height: 240px;
+        padding: 8px;
+    }
+}
