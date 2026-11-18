@@ -40,7 +40,7 @@ Business rules live only in the .NET server. The Java server stores and reads da
 
 | Folder | What it is |
 |---|---|
-| `database/` | `schema.sql` (tables, constraints, totals view) and `seed.sql` (countries, machines) |
+| `database/` | `schema.sql` (tables, constraints, totals view) and `seed.sql` (countries, technologies) |
 | `proto/` | gRPC contracts, one file per service, compiled by both Maven and MSBuild |
 | `data/` | Java data server: `entity`, `repository` (Spring Data JPA), `service` (gRPC services), `mapper`, `storage` |
 | `backend/Entities/` | .NET domain classes |

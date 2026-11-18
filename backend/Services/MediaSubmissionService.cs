@@ -18,8 +18,8 @@ public class MediaSubmissionService(
         ValidationCollector validation = new();
         MediaType? mediaType = fileValidator.Check(command.FileName, command.Length, validation);
         LocalizedTextValidator.Required("Title", command.Title, validation);
-        LocalizedTextValidator.Required("Description", command.Description, validation);
-        await CheckTechnologiesAsync(command.TechnologyCodes, validation);
+        LocalizedTextValidator.OptionalAllOrNone("Description", command.Description, validation);
+        await CheckTechnologiesAsync(command.TechnologyTypes, validation);
 
         validation.ThrowIfAny();
 
@@ -30,7 +30,7 @@ public class MediaSubmissionService(
         MediaSubmission submission = new()
         {
             MediaType = mediaType!.Value, // set whenever no error was reported
-            TechnologyCodes = command.TechnologyCodes.Distinct().ToList(),
+            TechnologyTypes = command.TechnologyTypes.Distinct().ToList(),
             Title = command.Title!, // checked by the validator above
             Description = NullIfEmpty(command.Description),
             StoredFileName = storedFileName,
@@ -43,11 +43,10 @@ public class MediaSubmissionService(
         return await submitter.SubmitAsync(ChangeTarget.Media, ChangeAction.Create, submission, [storedFileName]);
     }
 
-    // at least one technology, and every code must exist.
-    // The docs call them technologies, but the code and database call them machines.(check meeting)
-    private async Task CheckTechnologiesAsync(List<string> codes, ValidationCollector validation)
+    // At least one technology, and every type must exist.
+    private async Task CheckTechnologiesAsync(List<string> types, ValidationCollector validation)
     {
-        if (codes.Count == 0)
+        if (types.Count == 0)
         {
             validation.Add("Choose at least one technology.");
             return;
@@ -56,11 +55,12 @@ public class MediaSubmissionService(
         List<Technology> technologies = await technologyRepository.GetManyAsync();
         HashSet<string> known = technologies.Select(technology => technology.Type).ToHashSet();
 
-        foreach (string code in codes.Where(code => !known.Contains(code)).Distinct())
+        foreach (string type in types.Where(type => !known.Contains(type)).Distinct())
         {
-            validation.Add($"Unknown technology '{code}'.");
+            validation.Add($"Unknown technology '{type}'.");
         }
     }
+    
 
     // Three empty texts mean "no description".
     private static LocalizedText? NullIfEmpty(LocalizedText? description) =>
