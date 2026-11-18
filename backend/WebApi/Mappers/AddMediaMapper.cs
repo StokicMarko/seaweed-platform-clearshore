@@ -13,7 +13,7 @@ public static class AddMediaMapper
         FileName = file.FileName,
         Length = file.Length,
         ContentType = file.ContentType,
-        TechnologyCodes = form.TechnologyCodes,
+        TechnologyTypes = form.TechnologyTypes,
         Title = new LocalizedText(form.TitleEn ?? "", form.TitleEs ?? "", form.TitleFr ?? ""),
         Description = new LocalizedText(form.DescriptionEn ?? "", form.DescriptionEs ?? "", form.DescriptionFr ?? "")
     };

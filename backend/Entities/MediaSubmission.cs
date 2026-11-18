@@ -7,7 +7,7 @@ public class MediaSubmission
     public MediaType MediaType { get; set; }
 
     ///Codes of the technologies the media belongs to. At least one.
-    public required List<string> TechnologyCodes { get; set; }
+    public required List<string> TechnologyTypes { get; set; }
 
     /// English, Spanish and French
     public required LocalizedText Title { get; set; }
