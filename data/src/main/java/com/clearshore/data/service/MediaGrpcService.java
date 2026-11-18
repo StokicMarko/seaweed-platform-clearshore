@@ -1,6 +1,7 @@
 package com.clearshore.data.service;
 
 import com.clearshore.data.entity.MediaItem;
+import com.clearshore.data.generated.CommonProto;
 import com.clearshore.data.generated.MediaDataGrpc;
 import com.clearshore.data.generated.MediaProto;
 import com.clearshore.data.mapper.MediaMapper;
@@ -53,7 +54,7 @@ public class MediaGrpcService extends MediaDataGrpc.MediaDataImplBase {
     }
 
     @Override
-    public void readFile(MediaProto.MediaId request, StreamObserver<MediaProto.FileChunk> responseObserver) {
+    public void readFile(MediaProto.MediaId request, StreamObserver<CommonProto.FileChunk> responseObserver) {
         Optional<MediaItem> media = mediaRepository.findById(request.getId());
         if (media.isEmpty()) {
             responseObserver.onError(notFound("Media " + request.getId() + " not found"));
@@ -63,7 +64,7 @@ public class MediaGrpcService extends MediaDataGrpc.MediaDataImplBase {
             byte[] buffer = new byte[CHUNK_SIZE];
             int read;
             while ((read = input.read(buffer)) != -1) {
-                responseObserver.onNext(MediaProto.FileChunk.newBuilder()
+                responseObserver.onNext(CommonProto.FileChunk.newBuilder()
                         .setData(ByteString.copyFrom(buffer, 0, read))
                         .build());
             }

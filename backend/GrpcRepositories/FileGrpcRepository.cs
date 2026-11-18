@@ -42,4 +42,17 @@ public class FileGrpcRepository(Generated.FileData.FileDataClient client) : IFil
         {
             await client.DeleteAsync(new Generated.StoredFile { StoredFileName = storedFileName });
         });
+
+    public Task CopyToAsync(string storedFileName, Stream destination, CancellationToken cancellationToken) =>
+        GrpcCall.RunAsync(async () =>
+        {
+            using AsyncServerStreamingCall<Generated.FileChunk> call =
+                client.Read(new Generated.StoredFile { StoredFileName = storedFileName },
+                    cancellationToken: cancellationToken);
+
+            await foreach (Generated.FileChunk chunk in call.ResponseStream.ReadAllAsync(cancellationToken))
+            {
+                await destination.WriteAsync(chunk.Data.Memory, cancellationToken);
+            }
+        });
 }

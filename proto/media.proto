@@ -46,7 +46,3 @@ message MediaId {
 message MediaList {
   repeated Media items = 1;
 }
-
-message FileChunk {
-  bytes data = 1;
-}

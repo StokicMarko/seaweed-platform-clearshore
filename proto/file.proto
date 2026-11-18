@@ -1,6 +1,7 @@
 syntax = "proto3";
 package clearshore;
 import "google/protobuf/empty.proto";
+import "common.proto";
 
 option java_package = "com.clearshore.data.generated";
 option java_outer_classname = "FileProto";
@@ -14,6 +15,9 @@ service FileData {
 
   // Deletes a stored file.
   rpc Delete (StoredFile) returns (google.protobuf.Empty);
+
+  // Reads a stored file by its stored name, for files that have no media item yet.
+  rpc Read (StoredFile) returns (stream FileChunk);
 }
 
 message SaveFileRequest {
