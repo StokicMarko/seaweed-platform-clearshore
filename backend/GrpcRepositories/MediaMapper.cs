@@ -7,7 +7,7 @@ internal static class MediaMapper
     public static Media ToEntity(Generated.Media media) => new()
     {
         Id = media.Id,
-        Technology = media.Technology is null ? null : TechnologyMapper.ToEntity(media.Technology),
+       Technologies = media.Technologies.Select(TechnologyMapper.ToEntity).ToList(),
         MediaType = ToEntity(media.MediaType),
         Title = CommonMapper.ToEntity(media.Title),
         Description = media.Description is null ? null : CommonMapper.ToEntity(media.Description),

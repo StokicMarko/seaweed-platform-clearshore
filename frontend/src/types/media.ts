@@ -5,7 +5,7 @@ export type MediaType = 'Image' | 'Video' | 'Model3D';
 
 export interface Media {
   id: number;
-  technology: Technology | null;
+  technologies: Technology[];
   mediaType: MediaType;
   title: LocalizedText;
   description: LocalizedText | null;

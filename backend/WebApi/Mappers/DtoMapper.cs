@@ -11,7 +11,7 @@ public static class DtoMapper
     public static MediaDto ToDto(Media media) => new()
     {
         Id = media.Id,
-        Technology = media.Technology is null ? null : ToDto(media.Technology),
+        Technologies = media.Technologies.Select(ToDto).ToList(),
         MediaType = media.MediaType.ToString(),
         Title = ToDto(media.Title),
         Description = media.Description is null ? null : ToDto(media.Description),

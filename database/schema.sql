@@ -1,6 +1,8 @@
 CREATE SCHEMA IF NOT EXISTS sep3;
 SET search_path TO sep3;
 
+-- Not in the ER yet: StaffMember and MainAdmin are identified by email in the docs.
+-- Kept as is until the "Users by email" issue. :)
 CREATE TABLE app_user
 (
     id            SERIAL PRIMARY KEY,
@@ -11,6 +13,7 @@ CREATE TABLE app_user
     is_active     BOOLEAN      NOT NULL DEFAULT TRUE,
     created_at    TIMESTAMPTZ  NOT NULL DEFAULT now()
 );
+
 
 CREATE TABLE technology
 (
@@ -25,102 +28,103 @@ CREATE TABLE country
     name_fr VARCHAR(100) NOT NULL
 );
 
-CREATE TABLE media
+CREATE TABLE media_item
 (
-    id                 SERIAL PRIMARY KEY,
-    technology_type       VARCHAR(100) REFERENCES technology (type),
-    media_type         VARCHAR(10)  NOT NULL CHECK (media_type IN ('IMAGE', 'VIDEO', 'MODEL_3D')),
-    title_en           VARCHAR(200) NOT NULL,
-    title_es           VARCHAR(200) NOT NULL,
-    title_fr           VARCHAR(200) NOT NULL,
-    description_en     TEXT,
-    description_es     TEXT,
-    description_fr     TEXT,
-    original_file_name VARCHAR(255) NOT NULL,
-    stored_file_name   VARCHAR(255) NOT NULL UNIQUE,
-    content_type       VARCHAR(100) NOT NULL,
-    published_at       TIMESTAMPTZ  NOT NULL DEFAULT now(),
-    updated_at         TIMESTAMPTZ  NOT NULL DEFAULT now(),
-    CONSTRAINT media_description_all_or_none CHECK (
-        (description_en IS NULL) = (description_es IS NULL)
-            AND (description_en IS NULL) = (description_fr IS NULL))
+    id           SERIAL PRIMARY KEY,
+    type         VARCHAR(10)  NOT NULL CHECK (type IN ('IMAGE', 'VIDEO', 'MODEL_3D')),
+    title_en     VARCHAR(200) NOT NULL,
+    title_es     VARCHAR(200) NOT NULL,
+    title_fr     VARCHAR(200) NOT NULL,
+    text_en      TEXT,
+    text_es      TEXT,
+    text_fr      TEXT,
+    published_at TIMESTAMPTZ  NOT NULL DEFAULT now(),
+    updated_at   TIMESTAMPTZ  NOT NULL DEFAULT now(),
+    CONSTRAINT media_item_text_all_or_none CHECK (
+        (text_en IS NULL) = (text_es IS NULL)
+            AND (text_en IS NULL) = (text_fr IS NULL))
 );
 
-CREATE TABLE news
+CREATE TABLE media_technology
+(
+    media_item_id   INT          NOT NULL REFERENCES media_item (id) ON DELETE CASCADE,
+    technology_type VARCHAR(100) NOT NULL REFERENCES technology (type),
+    PRIMARY KEY (media_item_id, technology_type)
+);
+
+-- ER: NewsItem.
+CREATE TABLE news_item
 (
     id           SERIAL PRIMARY KEY,
     title_en     VARCHAR(200) NOT NULL,
     title_es     VARCHAR(200) NOT NULL,
     title_fr     VARCHAR(200) NOT NULL,
-    body_en      TEXT         NOT NULL,
-    body_es      TEXT         NOT NULL,
-    body_fr      TEXT         NOT NULL,
+    text_en      TEXT         NOT NULL,
+    text_es      TEXT         NOT NULL,
+    text_fr      TEXT         NOT NULL,
     published_at TIMESTAMPTZ  NOT NULL DEFAULT now(),
     updated_at   TIMESTAMPTZ  NOT NULL DEFAULT now()
 );
 
-CREATE TABLE news_media
+-- ER: MediaFile. Belongs to one media item OR one news item, never both.
+CREATE TABLE media_file
 (
-    news_id  INT NOT NULL REFERENCES news (id) ON DELETE CASCADE,
-    media_id INT NOT NULL REFERENCES media (id) ON DELETE RESTRICT,
-    position INT NOT NULL CHECK (position >= 0),
-    PRIMARY KEY (news_id, media_id)
+    id                 SERIAL PRIMARY KEY,
+    original_file_name VARCHAR(255) NOT NULL,
+    stored_file_name   VARCHAR(255) NOT NULL UNIQUE,
+    content_type       VARCHAR(100) NOT NULL,
+    media_item_id      INT UNIQUE REFERENCES media_item (id) ON DELETE CASCADE,
+    news_item_id       INT REFERENCES news_item (id) ON DELETE CASCADE,
+    CONSTRAINT media_file_belongs_to_one CHECK ((media_item_id IS NULL) <> (news_item_id IS NULL))
 );
 
 CREATE TABLE country_deployment
 (
-    id             SERIAL PRIMARY KEY,
-    country_code   VARCHAR(2)    NOT NULL UNIQUE REFERENCES country (code),
-    mesh_km        NUMERIC(8, 2) NOT NULL CHECK (mesh_km >= 0),
-    device_count   INT           NOT NULL CHECK (device_count >= 0),
-    photo_media_id INT REFERENCES media (id) ON DELETE RESTRICT,
-    info_en        TEXT          NOT NULL,
-    info_es        TEXT          NOT NULL,
-    info_fr        TEXT          NOT NULL,
-    published_at   TIMESTAMPTZ   NOT NULL DEFAULT now(),
-    updated_at     TIMESTAMPTZ   NOT NULL DEFAULT now()
+    id                 SERIAL PRIMARY KEY,
+    country_code       VARCHAR(2)    NOT NULL UNIQUE REFERENCES country (code),
+    kilometers_of_mesh NUMERIC(8, 2) NOT NULL CHECK (kilometers_of_mesh >= 0),
+    number_of_devices  INT           NOT NULL CHECK (number_of_devices >= 0),
+    photo              VARCHAR(255),
+    info_en            TEXT          NOT NULL,
+    info_es            TEXT          NOT NULL,
+    info_fr            TEXT          NOT NULL,
+    published_at       TIMESTAMPTZ   NOT NULL DEFAULT now(),
+    updated_at         TIMESTAMPTZ   NOT NULL DEFAULT now()
 );
 
 CREATE TABLE reference_adjustment
 (
-    id            SERIAL PRIMARY KEY,
-    mesh_km_delta NUMERIC(8, 2) NOT NULL DEFAULT 0,
-    device_delta  INT           NOT NULL DEFAULT 0,
-    reason        TEXT          NOT NULL,
-    published_at  TIMESTAMPTZ   NOT NULL DEFAULT now(),
-    CONSTRAINT reference_adjustment_not_empty CHECK (mesh_km_delta <> 0 OR device_delta <> 0)
+    id                 SERIAL PRIMARY KEY,
+    kilometers_changed NUMERIC(8, 2) NOT NULL CHECK (kilometers_changed <> 0),
+    published_at       TIMESTAMPTZ   NOT NULL DEFAULT now()
 );
 
 CREATE TABLE change_request
 (
     id           SERIAL PRIMARY KEY,
-    content_type VARCHAR(30) NOT NULL CHECK (content_type IN
+    target_type  VARCHAR(30) NOT NULL CHECK (target_type IN
                                              ('NEWS', 'MEDIA', 'COUNTRY_DEPLOYMENT', 'REFERENCE_ADJUSTMENT')),
-    action       VARCHAR(10) NOT NULL CHECK (action IN ('CREATE', 'UPDATE', 'DELETE')),
+    type         VARCHAR(10) NOT NULL CHECK (type IN ('CREATE', 'UPDATE', 'DELETE')),
     target_id    INT,
     payload      JSONB,
-    status       VARCHAR(10) NOT NULL DEFAULT 'DRAFT' CHECK (status IN ('DRAFT', 'PENDING', 'PUBLISHED', 'REJECTED')),
+    status       VARCHAR(10) NOT NULL DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'RETURNED')),
     requested_by INT         NOT NULL REFERENCES app_user (id),
     created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
-    submitted_at TIMESTAMPTZ,
     reviewed_by  INT REFERENCES app_user (id),
-    reviewed_at  TIMESTAMPTZ,
-    review_note  TEXT,
-    CONSTRAINT change_request_payload_unless_delete CHECK ((action = 'DELETE') = (payload IS NULL)),
-    CONSTRAINT change_request_target_unless_create CHECK (action = 'CREATE' OR target_id IS NOT NULL),
-    CONSTRAINT change_request_published_has_target CHECK (status <> 'PUBLISHED' OR target_id IS NOT NULL),
-    CONSTRAINT change_request_submitted_unless_draft CHECK ((status = 'DRAFT') = (submitted_at IS NULL)),
-    CONSTRAINT change_request_reviewed_when_decided CHECK (
-        (status IN ('PUBLISHED', 'REJECTED')) = (reviewed_by IS NOT NULL AND reviewed_at IS NOT NULL))
+    -- a delete has no payload, create and update always have one
+    CONSTRAINT change_request_payload_unless_delete CHECK ((type = 'DELETE') = (payload IS NULL)),
+    -- update and delete must say which item they change
+    CONSTRAINT change_request_target_unless_create CHECK (type = 'CREATE' OR target_id IS NOT NULL)
 );
 
-CREATE UNIQUE INDEX change_request_one_pending_per_item
-    ON change_request (content_type, target_id)
-    WHERE status = 'PENDING' AND target_id IS NOT NULL;
+-- Only one open request per item.
+CREATE UNIQUE INDEX change_request_one_open_per_item
+    ON change_request (target_type, target_id)
+    WHERE target_id IS NOT NULL;
 
-CREATE VIEW reference_totals AS
-SELECT (SELECT COALESCE(SUM(mesh_km), 0) FROM country_deployment)
-           + (SELECT COALESCE(SUM(mesh_km_delta), 0) FROM reference_adjustment) AS total_mesh_km,
-       (SELECT COALESCE(SUM(device_count), 0) FROM country_deployment)
-           + (SELECT COALESCE(SUM(device_delta), 0) FROM reference_adjustment)  AS total_devices,
-       (SELECT COUNT(*) FROM country_deployment)                                AS country_count;
+-- ER: ReferenceTotal (derived).
+-- ER: ReferenceTotal (derived, updates itself): total_km and years_of_experience.
+CREATE VIEW reference_total AS
+SELECT (SELECT COALESCE(SUM(kilometers_of_mesh), 0) FROM country_deployment)
+           + (SELECT COALESCE(SUM(kilometers_changed), 0) FROM reference_adjustment) AS total_km,
+       EXTRACT(YEAR FROM age(current_date, DATE '2007-06-28'))::INT         AS years_of_experience;
