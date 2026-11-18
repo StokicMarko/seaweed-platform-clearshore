@@ -5,10 +5,9 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-
-import java.io.OutputStream;
 import java.nio.file.StandardOpenOption;
 import java.util.Locale;
 import java.util.UUID;
@@ -26,22 +25,13 @@ public class FileStorage {
         return Files.newInputStream(resolve(storedFileName));
     }
 
-    private Path resolve(String storedFileName) {
-        Path file = folder.resolve(storedFileName).normalize();
-        if (!file.startsWith(folder)) {
-            throw new IllegalArgumentException("File is outside the media folder: " + storedFileName);
-        }
-        return file;
-    }
-
-    /** A unique name for a new file. Only the extension of the uploaded name is kept. */
     public String newStoredFileName(String originalFileName) {
         String name = Path.of(originalFileName).getFileName().toString();
         int dot = name.lastIndexOf('.');
         String extension = dot >= 0 ? name.substring(dot + 1).toLowerCase(Locale.ROOT) : "";
         return extension.matches("[a-z0-9]{1,10}")
-            ? UUID.randomUUID() + "." + extension
-            : UUID.randomUUID().toString();
+                ? UUID.randomUUID() + "." + extension
+                : UUID.randomUUID().toString();
     }
 
     public OutputStream create(String storedFileName) throws IOException {
@@ -50,5 +40,13 @@ public class FileStorage {
 
     public void delete(String storedFileName) throws IOException {
         Files.deleteIfExists(resolve(storedFileName));
+    }
+
+    private Path resolve(String storedFileName) {
+        Path file = folder.resolve(storedFileName).normalize();
+        if (!file.startsWith(folder)) {
+            throw new IllegalArgumentException("File is outside the media folder: " + storedFileName);
+        }
+        return file;
     }
 }
