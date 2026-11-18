@@ -59,13 +59,12 @@ public class HttpMediaService(HttpClient http) : IMediaService
             "File",
             Path.GetFileName(file.Name));
 
-        // Keep the existing API field name.
-        foreach (string type in form.TechnologyTypes)
-        {
-            multipart.Add(
-                new StringContent(type),
-                "TechnologyCodes");
-        }
+                foreach (string type in form.TechnologyTypes)
+                {
+                    multipart.Add(
+                        new StringContent(type),
+                        "TechnologyTypes");
+                }
 
         multipart.Add(
             new StringContent(form.TitleEn.Trim()),
