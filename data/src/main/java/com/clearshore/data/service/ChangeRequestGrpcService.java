@@ -7,11 +7,15 @@ import com.clearshore.data.mapper.ChangeRequestMapper;
 import com.clearshore.data.repository.ChangeRequestRepository;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.grpc.server.service.GrpcService;
 
 @GrpcService
 public class ChangeRequestGrpcService extends ChangeRequestDataGrpc.ChangeRequestDataImplBase {
+
+    private static final Logger log = LoggerFactory.getLogger(ChangeRequestGrpcService.class);
 
     private final ChangeRequestRepository changeRequestRepository;
 
@@ -28,6 +32,11 @@ public class ChangeRequestGrpcService extends ChangeRequestDataGrpc.ChangeReques
             responseObserver.onCompleted();
         } catch (IllegalArgumentException | DataIntegrityViolationException e) {
             responseObserver.onError(Status.INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
+        } catch (RuntimeException e) {
+            log.error("Could not create the change request", e);
+            responseObserver.onError(Status.INTERNAL
+                    .withDescription("Could not create the change request")
+                    .asRuntimeException());
         }
     }
 }
