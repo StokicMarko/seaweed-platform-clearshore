@@ -1,9 +1,9 @@
 package com.clearshore.data.mapper;
 
-import com.clearshore.data.entity.ChangeAction;
 import com.clearshore.data.entity.ChangeRequest;
 import com.clearshore.data.entity.ChangeStatus;
 import com.clearshore.data.entity.ChangeTarget;
+import com.clearshore.data.entity.ChangeType;
 import com.clearshore.data.generated.ChangeRequestProto;
 import org.junit.jupiter.api.Test;
 
@@ -26,10 +26,10 @@ class ChangeRequestMapperTest {
 
         ChangeRequest request = ChangeRequestMapper.toEntity(proto);
 
-        assertEquals(ChangeTarget.MEDIA, request.getTarget());
-        assertEquals(ChangeAction.CREATE, request.getAction());
+        assertEquals(ChangeTarget.MEDIA, request.getTargetType());
+        assertEquals(ChangeType.CREATE, request.getType());
         assertEquals(ChangeStatus.PENDING, request.getStatus());
-        assertEquals("{\"titleEn\":\"Boom\"}", request.getPayloadJson());
+        assertEquals("{\"titleEn\":\"Boom\"}", request.getPayload());
         assertEquals(7, request.getRequestedBy());
         assertNull(request.getTargetId());
     }
@@ -47,13 +47,13 @@ class ChangeRequestMapperTest {
         ChangeRequest request = ChangeRequestMapper.toEntity(proto);
 
         assertEquals(12, request.getTargetId());
-        assertNull(request.getPayloadJson());
+        assertNull(request.getPayload());
     }
 
     @Test
     void replyCarriesTheCreatedAtAndOmitsEmptyOptionals() {
-        ChangeRequest request = new ChangeRequest(ChangeTarget.MEDIA, ChangeAction.CREATE, null,
-                "{}", ChangeStatus.PENDING, 7);
+        ChangeRequest request = new ChangeRequest(ChangeTarget.MEDIA, ChangeType.CREATE, null,
+                "{}", 7);
 
         ChangeRequestProto.ChangeRequest proto = ChangeRequestMapper.toProto(request);
 

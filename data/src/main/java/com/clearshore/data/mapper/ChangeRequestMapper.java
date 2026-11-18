@@ -1,9 +1,9 @@
 package com.clearshore.data.mapper;
 
-import com.clearshore.data.entity.ChangeAction;
 import com.clearshore.data.entity.ChangeRequest;
 import com.clearshore.data.entity.ChangeStatus;
 import com.clearshore.data.entity.ChangeTarget;
+import com.clearshore.data.entity.ChangeType;
 import com.clearshore.data.generated.ChangeRequestProto;
 
 public final class ChangeRequestMapper {
@@ -17,15 +17,14 @@ public final class ChangeRequestMapper {
                 toEntity(proto.getAction()),
                 proto.hasTargetId() ? proto.getTargetId() : null,
                 proto.hasPayloadJson() ? proto.getPayloadJson() : null,
-                toEntity(proto.getStatus()),
                 proto.getRequestedBy());
     }
 
     public static ChangeRequestProto.ChangeRequest toProto(ChangeRequest request) {
         ChangeRequestProto.ChangeRequest.Builder builder = ChangeRequestProto.ChangeRequest.newBuilder()
                 .setId(request.getId())
-                .setTarget(toProto(request.getTarget()))
-                .setAction(toProto(request.getAction()))
+                .setTarget(toProto(request.getTargetType()))
+                .setAction(toProto(request.getType()))
                 .setStatus(toProto(request.getStatus()))
                 .setRequestedBy(request.getRequestedBy())
                 .setCreatedAt(CommonMapper.toTimestamp(request.getCreatedAt()));
@@ -33,8 +32,8 @@ public final class ChangeRequestMapper {
         if (request.getTargetId() != null) {
             builder.setTargetId(request.getTargetId());
         }
-        if (request.getPayloadJson() != null) {
-            builder.setPayloadJson(request.getPayloadJson());
+        if (request.getPayload() != null) {
+            builder.setPayloadJson(request.getPayload());
         }
         return builder.build();
     }
@@ -49,20 +48,12 @@ public final class ChangeRequestMapper {
         };
     }
 
-    private static ChangeAction toEntity(ChangeRequestProto.ChangeAction action) {
+    private static ChangeType toEntity(ChangeRequestProto.ChangeAction action) {
         return switch (action) {
-            case CHANGE_ACTION_CREATE -> ChangeAction.CREATE;
-            case CHANGE_ACTION_UPDATE -> ChangeAction.UPDATE;
-            case CHANGE_ACTION_DELETE -> ChangeAction.DELETE;
+            case CHANGE_ACTION_CREATE -> ChangeType.CREATE;
+            case CHANGE_ACTION_UPDATE -> ChangeType.UPDATE;
+            case CHANGE_ACTION_DELETE -> ChangeType.DELETE;
             default -> throw new IllegalArgumentException("Unknown change action: " + action);
-        };
-    }
-
-    private static ChangeStatus toEntity(ChangeRequestProto.ChangeStatus status) {
-        return switch (status) {
-            case CHANGE_STATUS_PENDING -> ChangeStatus.PENDING;
-            case CHANGE_STATUS_RETURNED -> ChangeStatus.RETURNED;
-            default -> throw new IllegalArgumentException("Unknown change status: " + status);
         };
     }
 
@@ -75,8 +66,8 @@ public final class ChangeRequestMapper {
         };
     }
 
-    private static ChangeRequestProto.ChangeAction toProto(ChangeAction action) {
-        return switch (action) {
+    private static ChangeRequestProto.ChangeAction toProto(ChangeType type) {
+        return switch (type) {
             case CREATE -> ChangeRequestProto.ChangeAction.CHANGE_ACTION_CREATE;
             case UPDATE -> ChangeRequestProto.ChangeAction.CHANGE_ACTION_UPDATE;
             case DELETE -> ChangeRequestProto.ChangeAction.CHANGE_ACTION_DELETE;

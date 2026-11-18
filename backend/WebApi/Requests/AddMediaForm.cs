@@ -5,7 +5,7 @@
 public class AddMediaForm
 {
     public IFormFile? File { get; set; }
-    public List<string> TechnologyCodes { get; set; } = [];
+    public List<string> TechnologyTypes { get; set; } = [];
 
     public string? TitleEn { get; set; }
     public string? TitleEs { get; set; }
