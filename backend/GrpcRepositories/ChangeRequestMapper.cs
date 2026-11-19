@@ -41,6 +41,39 @@ internal static class ChangeRequestMapper
         CreatedAt = proto.CreatedAt.ToDateTimeOffset()
     };
 
+    
+    public static Generated.GetManyChangeRequestsRequest ToGetManyRequest(
+        ChangeTarget? targetType,
+        int? targetId,
+        ChangeStatus? status)
+    {
+        Generated.GetManyChangeRequestsRequest proto = new();
+
+        if (targetType is not null)
+        {
+            proto.TargetType = ToProto(targetType.Value);
+        }
+
+        if (targetId is not null)
+        {
+            proto.TargetId = targetId.Value;
+        }
+
+        if (status is not null)
+        {
+            proto.Status = ToProto(status.Value);
+        }
+
+        return proto;
+    }
+    
+    //req of UpdateStatus, which request, and its new status.
+    public static Generated.UpdateChangeRequestStatusRequest ToUpdateStatusRequest(int id, ChangeStatus status) => new()
+    {
+        Id = id,
+        Status = ToProto(status)
+    };
+
     private static Generated.ChangeTarget ToProto(ChangeTarget target) => target switch
     {
         ChangeTarget.News => Generated.ChangeTarget.News,
