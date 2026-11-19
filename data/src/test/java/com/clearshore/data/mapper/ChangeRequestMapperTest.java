@@ -17,8 +17,8 @@ class ChangeRequestMapperTest {
     @Test
     void mapsACreateRequestWithPayloadToTheEntity() {
         ChangeRequestProto.ChangeRequest proto = ChangeRequestProto.ChangeRequest.newBuilder()
-                .setTarget(ChangeRequestProto.ChangeTarget.CHANGE_TARGET_MEDIA)
-                .setAction(ChangeRequestProto.ChangeAction.CHANGE_ACTION_CREATE)
+                .setTargetType(ChangeRequestProto.ChangeTarget.CHANGE_TARGET_MEDIA)
+                .setType(ChangeRequestProto.ChangeType.CHANGE_TYPE_CREATE)
                 .setPayloadJson("{\"titleEn\":\"Boom\"}")
                 .setStatus(ChangeRequestProto.ChangeStatus.CHANGE_STATUS_PENDING)
                 .setRequestedBy(7)
@@ -37,8 +37,8 @@ class ChangeRequestMapperTest {
     @Test
     void mapsADeleteRequestWithoutPayloadToTheEntity() {
         ChangeRequestProto.ChangeRequest proto = ChangeRequestProto.ChangeRequest.newBuilder()
-                .setTarget(ChangeRequestProto.ChangeTarget.CHANGE_TARGET_NEWS)
-                .setAction(ChangeRequestProto.ChangeAction.CHANGE_ACTION_DELETE)
+                .setTargetType(ChangeRequestProto.ChangeTarget.CHANGE_TARGET_NEWS)
+                .setType(ChangeRequestProto.ChangeType.CHANGE_TYPE_DELETE)
                 .setTargetId(12)
                 .setStatus(ChangeRequestProto.ChangeStatus.CHANGE_STATUS_PENDING)
                 .setRequestedBy(7)
@@ -57,7 +57,7 @@ class ChangeRequestMapperTest {
 
         ChangeRequestProto.ChangeRequest proto = ChangeRequestMapper.toProto(request);
 
-        assertEquals(ChangeRequestProto.ChangeTarget.CHANGE_TARGET_MEDIA, proto.getTarget());
+        assertEquals(ChangeRequestProto.ChangeTarget.CHANGE_TARGET_MEDIA, proto.getTargetType());
         assertEquals(ChangeRequestProto.ChangeStatus.CHANGE_STATUS_PENDING, proto.getStatus());
         assertEquals(request.getCreatedAt().getEpochSecond(), proto.getCreatedAt().getSeconds());
         assertFalse(proto.hasTargetId());

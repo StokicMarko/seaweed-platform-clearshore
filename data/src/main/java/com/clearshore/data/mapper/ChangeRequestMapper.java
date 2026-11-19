@@ -13,8 +13,8 @@ public final class ChangeRequestMapper {
 
     public static ChangeRequest toEntity(ChangeRequestProto.ChangeRequest proto) {
         return new ChangeRequest(
-                toEntity(proto.getTarget()),
-                toEntity(proto.getAction()),
+                toEntity(proto.getTargetType()),
+                toEntity(proto.getType()),
                 proto.hasTargetId() ? proto.getTargetId() : null,
                 proto.hasPayloadJson() ? proto.getPayloadJson() : null,
                 proto.getRequestedBy());
@@ -23,8 +23,8 @@ public final class ChangeRequestMapper {
     public static ChangeRequestProto.ChangeRequest toProto(ChangeRequest request) {
         ChangeRequestProto.ChangeRequest.Builder builder = ChangeRequestProto.ChangeRequest.newBuilder()
                 .setId(request.getId())
-                .setTarget(toProto(request.getTargetType()))
-                .setAction(toProto(request.getType()))
+                .setTargetType(toProto(request.getTargetType()))
+                .setType(toProto(request.getType()))
                 .setStatus(toProto(request.getStatus()))
                 .setRequestedBy(request.getRequestedBy())
                 .setCreatedAt(CommonMapper.toTimestamp(request.getCreatedAt()));
@@ -48,12 +48,12 @@ public final class ChangeRequestMapper {
         };
     }
 
-    private static ChangeType toEntity(ChangeRequestProto.ChangeAction action) {
-        return switch (action) {
-            case CHANGE_ACTION_CREATE -> ChangeType.CREATE;
-            case CHANGE_ACTION_UPDATE -> ChangeType.UPDATE;
-            case CHANGE_ACTION_DELETE -> ChangeType.DELETE;
-            default -> throw new IllegalArgumentException("Unknown change action: " + action);
+    private static ChangeType toEntity(ChangeRequestProto.ChangeType type) {
+        return switch (type) {
+            case CHANGE_TYPE_CREATE -> ChangeType.CREATE;
+            case CHANGE_TYPE_UPDATE -> ChangeType.UPDATE;
+            case CHANGE_TYPE_DELETE -> ChangeType.DELETE;
+            default -> throw new IllegalArgumentException("Unknown change type: " + type);
         };
     }
 
@@ -66,11 +66,11 @@ public final class ChangeRequestMapper {
         };
     }
 
-    private static ChangeRequestProto.ChangeAction toProto(ChangeType type) {
+    private static ChangeRequestProto.ChangeType toProto(ChangeType type) {
         return switch (type) {
-            case CREATE -> ChangeRequestProto.ChangeAction.CHANGE_ACTION_CREATE;
-            case UPDATE -> ChangeRequestProto.ChangeAction.CHANGE_ACTION_UPDATE;
-            case DELETE -> ChangeRequestProto.ChangeAction.CHANGE_ACTION_DELETE;
+            case CREATE -> ChangeRequestProto.ChangeType.CHANGE_TYPE_CREATE;
+            case UPDATE -> ChangeRequestProto.ChangeType.CHANGE_TYPE_UPDATE;
+            case DELETE -> ChangeRequestProto.ChangeType.CHANGE_TYPE_DELETE;
         };
     }
 
