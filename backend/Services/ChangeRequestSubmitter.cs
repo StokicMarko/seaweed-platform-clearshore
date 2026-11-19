@@ -19,7 +19,7 @@ public class ChangeRequestSubmitter(
 
     public async Task<ChangeRequest> SubmitAsync<TPayload>(
         ChangeTarget target,
-        ChangeAction action,
+        ChangeType type,
         TPayload payload,
         IReadOnlyCollection<string> storedFileNames)
     {
@@ -27,8 +27,8 @@ public class ChangeRequestSubmitter(
         {
             ChangeRequest request = new()
             {
-                Target = target,
-                Action = action,
+                TargetType = target,
+                Type = type,
                 PayloadJson = JsonSerializer.Serialize(payload, JsonOptions),
                 Status = ChangeStatus.Pending,
                 RequestedBy = currentUser.Id

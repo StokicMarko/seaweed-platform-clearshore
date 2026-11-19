@@ -9,8 +9,8 @@ internal static class ChangeRequestMapper
     {
         Generated.ChangeRequest proto = new()
         {
-            Target = ToProto(request.Target),
-            Action = ToProto(request.Action),
+            TargetType = ToProto(request.TargetType),
+            Type = ToProto(request.Type),
             Status = ToProto(request.Status),
             RequestedBy = request.RequestedBy
         };
@@ -32,8 +32,8 @@ internal static class ChangeRequestMapper
     public static ChangeRequest ToEntity(Generated.ChangeRequest proto) => new()
     {
         Id = proto.Id,
-        Target = ToEntity(proto.Target),
-        Action = ToEntity(proto.Action),
+        TargetType = ToEntity(proto.TargetType),
+        Type = ToEntity(proto.Type),
         TargetId = proto.HasTargetId ? proto.TargetId : null,
         PayloadJson = proto.HasPayloadJson ? proto.PayloadJson : null,
         Status = ToEntity(proto.Status),
@@ -59,20 +59,20 @@ internal static class ChangeRequestMapper
         _ => throw new ArgumentOutOfRangeException(nameof(target), target, "Unknown change target")
     };
 
-    private static Generated.ChangeAction ToProto(ChangeAction action) => action switch
+    private static Generated.ChangeType ToProto(ChangeType type) => type switch
     {
-        ChangeAction.Create => Generated.ChangeAction.Create,
-        ChangeAction.Update => Generated.ChangeAction.Update,
-        ChangeAction.Delete => Generated.ChangeAction.Delete,
-        _ => throw new ArgumentOutOfRangeException(nameof(action), action, "Unknown change action")
+        ChangeType.Create => Generated.ChangeType.Create,
+        ChangeType.Update => Generated.ChangeType.Update,
+        ChangeType.Delete => Generated.ChangeType.Delete,
+        _ => throw new ArgumentOutOfRangeException(nameof(type), type, "Unknown change type")
     };
 
-    private static ChangeAction ToEntity(Generated.ChangeAction action) => action switch
+    private static ChangeType ToEntity(Generated.ChangeType action) => action switch
     {
-        Generated.ChangeAction.Create => ChangeAction.Create,
-        Generated.ChangeAction.Update => ChangeAction.Update,
-        Generated.ChangeAction.Delete => ChangeAction.Delete,
-        _ => throw new ArgumentOutOfRangeException(nameof(action), action, "Unknown change action")
+        Generated.ChangeType.Create => ChangeType.Create,
+        Generated.ChangeType.Update => ChangeType.Update,
+        Generated.ChangeType.Delete => ChangeType.Delete,
+        _ => throw new ArgumentOutOfRangeException(nameof(action), action, "Unknown change type")
     };
 
     private static Generated.ChangeStatus ToProto(ChangeStatus status) => status switch

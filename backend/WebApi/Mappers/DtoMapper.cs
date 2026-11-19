@@ -32,8 +32,8 @@ public static class DtoMapper
     public static ChangeRequestDto ToDto(ChangeRequest request) => new()
     {
         Id = request.Id,
-        Target = request.Target.ToString(),
-        Action = request.Action.ToString(),
+        TargetType = request.TargetType.ToString(),
+        Type = request.Type.ToString(),
         Status = request.Status.ToString(),
         CreatedAt = request.CreatedAt
     };

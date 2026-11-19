@@ -40,7 +40,7 @@ public class MediaSubmissionService(
                 : command.ContentType
         };
 
-        return await submitter.SubmitAsync(ChangeTarget.Media, ChangeAction.Create, submission, [storedFileName]);
+        return await submitter.SubmitAsync(ChangeTarget.Media, ChangeType.Create, submission, [storedFileName]);
     }
 
     // At least one technology, and every type must exist.

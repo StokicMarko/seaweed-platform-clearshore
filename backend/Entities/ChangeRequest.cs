@@ -8,10 +8,10 @@ public class ChangeRequest
     public int Id { get; set; }
 
     ///  website the change is about
-    public ChangeTarget Target { get; set; }
+    public ChangeTarget TargetType { get; set; }
 
     /// Create, update or delete
-    public ChangeAction Action { get; set; }
+    public ChangeType Type { get; set; }
 
     /// Id of the existing item. Empty for Create,
     public int? TargetId { get; set; }

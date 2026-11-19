@@ -25,11 +25,11 @@ enum ChangeTarget {
   CHANGE_TARGET_REFERENCE_ADJUSTMENT = 4;
 }
 
-enum ChangeAction {
-  CHANGE_ACTION_UNSPECIFIED = 0;
-  CHANGE_ACTION_CREATE = 1;
-  CHANGE_ACTION_UPDATE = 2;
-  CHANGE_ACTION_DELETE = 3;
+enum ChangeType {
+  CHANGE_TYPE_UNSPECIFIED = 0;
+  CHANGE_TYPE_CREATE = 1;
+  CHANGE_TYPE_UPDATE = 2;
+  CHANGE_TYPE_DELETE = 3;
 }
 
 enum ChangeStatus {
@@ -40,8 +40,8 @@ enum ChangeStatus {
 
 message ChangeRequest {
   int32 id = 1;
-  ChangeTarget target = 2;
-  ChangeAction action = 3;
+  ChangeTarget target_type = 2;
+  ChangeType type = 3;
   optional int32 target_id = 4;
   optional string payload_json = 5;
   ChangeStatus status = 6;

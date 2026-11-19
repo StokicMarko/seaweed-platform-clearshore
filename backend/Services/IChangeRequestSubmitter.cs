@@ -9,7 +9,7 @@ public interface IChangeRequestSubmitter
     /// If saving fails, the files already stored for it are deleted and the error is rethrown.
     Task<ChangeRequest> SubmitAsync<TPayload>(
         ChangeTarget target,
-        ChangeAction action,
+        ChangeType type,
         TPayload payload,
         IReadOnlyCollection<string> storedFileNames);
 }
