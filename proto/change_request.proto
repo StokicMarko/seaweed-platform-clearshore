@@ -1,6 +1,7 @@
 syntax = "proto3";
 package clearshore;
 
+import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 
 option java_package = "com.clearshore.data.generated";
@@ -12,9 +13,19 @@ service ChangeRequestData {
 
   // The .NET server sends status and requested_by. id and created_at are ignored
   // on the way in; the reply returns the saved request with both filled in :)
-
   
   rpc Create (ChangeRequest) returns (ChangeRequest);
+
+  // Returns the requests that match the filters. A filter that is not set is not applied.
+  rpc GetMany (GetManyChangeRequestsRequest) returns (ChangeRequestList);
+
+  //takes id returns one request. NOT_FOUND = id does not exist.
+  rpc GetSingle (ChangeRequestId) returns (ChangeRequest);
+
+  rpc UpdateStatus (UpdateChangeRequestStatusRequest) returns (ChangeRequest);
+
+    // Deletes req (after approve and after decline).
+  rpc Delete (ChangeRequestId) returns (google.protobuf.Empty);
 }
 
 enum ChangeTarget {
@@ -33,7 +44,7 @@ enum ChangeType {
 }
 
 enum ChangeStatus {
-  CHANGE_STATUS_UNSPECIFIED = 0;
+  CHANGE_STATUS_UNSPECIFIED = 0; //nobody set it
   CHANGE_STATUS_PENDING = 1;
   CHANGE_STATUS_RETURNED = 2;
 }
@@ -47,4 +58,26 @@ message ChangeRequest {
   ChangeStatus status = 6;
   int32 requested_by = 7;
   google.protobuf.Timestamp created_at = 8;
+}
+
+message ChangeRequestId {
+  int32 id = 1;
+}
+
+// input of get many, field= filter
+message GetManyChangeRequestsRequest {
+  optional ChangeTarget target_type = 1;
+  optional int32 target_id = 2;
+  optional ChangeStatus status = 3;
+}
+
+message ChangeRequestList { //grpcs takes one, returns one, wrapped message
+  repeated ChangeRequest items = 1; //repeated = list
+}
+
+
+
+message UpdateChangeRequestStatusRequest {
+  int32 id = 1;
+  ChangeStatus status = 2;
 }
