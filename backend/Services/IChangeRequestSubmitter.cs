@@ -3,6 +3,7 @@
 namespace Services;
 
 ///Last step of every use case: store a proposed change as a pending change request.
+/// IChangeRequestSubmitter= staff submit, IChangeRequestReviewService = only the Main Admin.
 public interface IChangeRequestSubmitter
 {
     /// Saves the payload as a pending request from the current user.
