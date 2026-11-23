@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Entities;
+using Microsoft.Extensions.Options;
 
 namespace Services;
 
@@ -6,4 +7,5 @@ namespace Services;
 public class ConfiguredCurrentUser(IOptions<CurrentUserOptions> options) : ICurrentUser
 {
     public int Id => options.Value.Id;
+    public UserRole Role => options.Value.Role;
 }

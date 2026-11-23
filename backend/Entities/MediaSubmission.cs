@@ -1,11 +1,10 @@
 ﻿namespace Entities;
 
-///Data of one "Add Media" request is stored as JSON, the real is created with approve
+///Holds full Data of a media change request (add edit/ CREATE UPDATE), request is stored as JSON = payload of the change request, the real is created with approve)
 
-public class MediaSubmission
+public class MediaSubmission 
 {
-    public MediaType MediaType { get; set; }
-
+   
     ///Codes of the technologies the media belongs to. At least one.
     public required List<string> TechnologyTypes { get; set; }
 
@@ -15,12 +14,21 @@ public class MediaSubmission
     /// Optional, 3 languages if
     public LocalizedText? Description { get; set; }
 
+   //For Update they are all null when the staff member keeps the current file. ->
+
+        
+    public MediaType? MediaType { get; set; } //MEDIA optional for edit but checked for add applier
+    
+    
     /// Data server gave the file. Used to find it later
-    public required string StoredFileName { get; set; }
+    public string? StoredFileName { get; set; }
 
     ///Name the staff member uploaded
-    public required string OriginalFileName { get; set; }
+    public string? OriginalFileName { get; set; }
 
     /// file typee
-    public required string ContentType { get; set; }
+    public string? ContentType { get; set; }
+    
+    
+    
 }
