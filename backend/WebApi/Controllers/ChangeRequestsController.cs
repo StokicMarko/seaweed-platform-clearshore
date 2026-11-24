@@ -30,6 +30,18 @@ public class ChangeRequestsController(IChangeRequestReviewService reviewService)
         return DtoMapper.ToDetailDto(request);
     }
 
+    // UC09: preview the uploaded file of a pending request (photo, video or 3D model), by its stored name.
+    [HttpGet("{id:int}/files/{storedFileName}")]
+    public async Task GetFile([FromRoute] int id, [FromRoute] string storedFileName)
+    {
+        // First the checks (admin, pending, file belongs to the request). They also give the content type.
+        RequestFile file = await reviewService.GetFileAsync(id, storedFileName);
+        Response.ContentType = file.ContentType;
+
+        // Then stream the file into the response.
+        await reviewService.CopyFileToAsync(id, storedFileName, Response.Body, HttpContext.RequestAborted);
+    } 
+    
     // UC10: approve. Nothing to send back, the request is gone, so 204 No Content.
     [HttpPost("{id:int}/approve")]
     public async Task<IActionResult> Approve([FromRoute] int id)
