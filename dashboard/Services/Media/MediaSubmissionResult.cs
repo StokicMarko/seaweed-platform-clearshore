@@ -1,6 +1,6 @@
 using ApiContracts.ChangeRequests;
 
-namespace Dashboard.Services;
+namespace Dashboard.Services.Media;
 
 public class MediaSubmissionResult
 {

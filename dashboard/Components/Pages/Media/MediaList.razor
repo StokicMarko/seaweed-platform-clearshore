@@ -1,5 +1,5 @@
 @page "/media"
-@inject IMediaService MediaService
+@inject IMediaReader MediaReader
 
 <PageTitle>Media</PageTitle>
 
@@ -42,7 +42,7 @@ else
                     <td>@item.Title.En</td>
                     <td>@item.Title.Es</td>
                     <td>@item.Title.Fr</td>
-                    <td><a href="@MediaService.GetFileUrl(item)" target="_blank">@item.FileName</a></td>
+                    <td><a href="@MediaReader.GetFileUrl(item)" target="_blank">@item.FileName</a></td>
                     <td>@item.PublishedAt.ToString("yyyy-MM-dd HH:mm")</td>
                 </tr>
             }
@@ -58,7 +58,7 @@ else
     {
         try
         {
-            media = await MediaService.GetManyAsync();
+            media = await MediaReader.GetManyAsync();
         }
         catch (Exception e)
         {

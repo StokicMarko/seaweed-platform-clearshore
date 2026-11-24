@@ -6,8 +6,10 @@
 @using ApiContracts.Technology
 @using Dashboard.Models
 @using Dashboard.Services
+@using Dashboard.Services.Media
 @using Microsoft.AspNetCore.Components.Forms
-@inject IMediaService MediaService
+@inject IUploadRulesService UploadRulesService
+@inject IMediaWriter MediaWriter
 @inject HttpTechnologyService TechnologyService
 @implements IDisposable
 
@@ -212,7 +214,7 @@
             try
             {
                 rules =
-                    (await MediaService.GetUploadRulesAsync(
+                    (await UploadRulesService.GetUploadRulesAsync(
                         lifetime.Token))
                     .Where(rule =>
                         rule.MaxBytes > 0 &&
@@ -285,7 +287,7 @@
         try
         {
             MediaSubmissionResult result =
-                await MediaService.AddMediaAsync(
+                await MediaWriter.AddMediaAsync(
                     formData,
                     selectedFile,
                     rule.MaxBytes,
