@@ -1,0 +1,9 @@
+.inline-error {
+    margin: 0;
+    padding: 10px 12px;
+    border: 1px solid #ffc5bd;
+    border-radius: 6px;
+    background: #7d2528;
+    color: #ffffff;
+    font-size: 13px;
+}

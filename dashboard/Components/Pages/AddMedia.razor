@@ -60,11 +60,10 @@
                     <p>@error</p>
                 }
 
-                <button type="button"
-                        @onclick="LoadOptionsAsync"
-                        disabled="@(loading || uploading || savedRequest is not null)">
+                <ActionButton OnClick="LoadOptionsAsync"
+                              Disabled="@(loading || uploading || savedRequest is not null)">
                     Try again
-                </button>
+                </ActionButton>
             </div>
         }
 
@@ -111,20 +110,20 @@
                             Main Admin approval.
                         </p>
 
-                        <button type="button" @onclick="AddAnother">
+                        <ActionButton OnClick="AddAnother">
                             Add another
-                        </button>
+                        </ActionButton>
                     </StatusMessage>
                 }
 
-                <button type="submit"
-                        disabled="@(uploading || loading || savedRequest is not null)">
+                <ActionButton Type="submit"
+                              Disabled="@(uploading || loading || savedRequest is not null)">
                     @(uploading
                         ? "Uploading..."
                         : savedRequest is not null
                             ? "Submitted for approval"
                             : "Submit change request")
-                </button>
+                </ActionButton>
             </footer>
 
         </form>
