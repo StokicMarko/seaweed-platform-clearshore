@@ -1,0 +1,97 @@
+.request-details {
+    min-height: 100%;
+    padding: 24px;
+    color: #ffffff;
+    background: #1b3e78;
+}
+
+.request-details header,
+.request-details section {
+    margin-bottom: 28px;
+}
+
+.request-details a {
+    color: #ffffff;
+    text-underline-offset: 3px;
+}
+
+.request-details dl {
+    padding: 20px;
+    background: #294f85;
+    border: 1px solid #7290b8;
+    border-radius: 10px;
+}
+
+.request-details dt {
+    margin-top: 14px;
+    font-weight: bold;
+}
+
+.request-details dt:first-child {
+    margin-top: 0;
+}
+
+.request-details dd {
+    margin: 5px 0 0;
+    overflow-wrap: anywhere;
+}
+
+.request-details ::deep fieldset {
+    min-width: 0;
+    margin: 18px 0;
+    padding: 18px;
+    border: 1px solid #7290b8;
+    border-radius: 10px;
+}
+
+.request-details ::deep legend {
+    padding: 0 8px;
+    font-weight: bold;
+}
+
+.request-details button {
+    padding: 10px 16px;
+    border: 1px solid #a9c7eb;
+    border-radius: 8px;
+    color: #183c78;
+    background: #ffffff;
+    font: inherit;
+    cursor: pointer;
+}
+
+.request-details button:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+.review-actions,
+.request-details footer {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.request-details .confirmation {
+    margin-top: 20px;
+    padding: 20px;
+    border: 2px solid #a9d9ff;
+    border-radius: 10px;
+    background: #122b50;
+}
+
+.request-details .confirmation h3 {
+    margin-top: 0;
+}
+
+.request-details a:focus-visible,
+.request-details button:focus-visible {
+    outline: 3px solid #a9d9ff;
+    outline-offset: 4px;
+}
+
+@media (max-width: 600px) {
+    .request-details {
+        padding: 16px;
+    }
+}

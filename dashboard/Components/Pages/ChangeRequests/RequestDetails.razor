@@ -1,0 +1,462 @@
+@page "/change-requests/{Id:int}"
+@using ApiContracts.ChangeRequests
+@using Dashboard.Components.Shared
+@using Dashboard.Services.ChangeRequests
+@inject IChangeRequestReviewService ReviewService
+@implements IDisposable
+
+<PageTitle>Request details</PageTitle>
+
+<main class="request-details">
+    <header>
+        <h1>Request details</h1>
+        <a href="change-requests">Back to Pending requests</a>
+    </header>
+
+    @if (loading)
+    {
+        <p role="status">Loading request details...</p>
+    }
+
+    @if (errorMessage is not null)
+    {
+        <StatusMessage IsError="true"
+                       Title="The operation could not be completed.">
+            <p>@errorMessage</p>
+
+            @if (requiresRefresh)
+            {
+                <p>
+                    Refresh the request before attempting another action.
+                    The previous operation may have reached the server.
+                </p>
+            }
+        </StatusMessage>
+    }
+
+    @if (successMessage is not null)
+    {
+        <StatusMessage Title="@successMessage" />
+    }
+
+    @if (request is not null && !loading)
+    {
+        <section aria-labelledby="request-summary-heading">
+            <h2 id="request-summary-heading">Request summary</h2>
+
+            <dl>
+                <dt>Id</dt>
+                <dd>@request.Id</dd>
+
+                <dt>Target type</dt>
+                <dd>@request.TargetType</dd>
+
+                <dt>Type</dt>
+                <dd>@request.Type</dd>
+
+                <dt>Target id</dt>
+                <dd>@(request.TargetId?.ToString() ?? "—")</dd>
+
+                <dt>Requested by</dt>
+                <dd>@request.RequestedBy</dd>
+
+                <dt>Created at</dt>
+                <dd>
+                    @request.CreatedAt.ToString("yyyy-MM-dd HH:mm zzz")
+                </dd>
+
+                <dt>Status</dt>
+                <dd>
+                    <StatusBadge Status="@request.Status" />
+                </dd>
+            </dl>
+        </section>
+
+        @if (string.Equals(
+            request.TargetType,
+            "Media",
+            StringComparison.OrdinalIgnoreCase))
+        {
+            <MediaRequestView Request="@request" />
+        }
+        else
+        {
+            <StatusMessage Title="Target-specific view unavailable.">
+                <p>
+                    A details view for @request.TargetType
+                    has not been added yet.
+                </p>
+            </StatusMessage>
+        }
+
+        <section aria-labelledby="review-actions-heading">
+            <h2 id="review-actions-heading">Review actions</h2>
+
+            @if (!IsPending)
+            {
+                <p>
+                    Only Pending requests can be approved,
+                    declined or returned.
+                </p>
+            }
+
+            <div class="review-actions">
+                <button type="button"
+                        disabled="@(!CanReview || selectedAction is not null)"
+                        @onclick="() => BeginConfirmation(ReviewAction.Approve)">
+                    Approve
+                </button>
+
+                <button type="button"
+                        disabled="@(!CanReview || selectedAction is not null)"
+                        @onclick="() => BeginConfirmation(ReviewAction.Decline)">
+                    Decline
+                </button>
+
+                <button type="button"
+                        disabled="@(!CanReview || selectedAction is not null)"
+                        @onclick="() => BeginConfirmation(ReviewAction.Return)">
+                    Return
+                </button>
+            </div>
+
+            @if (selectedAction is not null)
+            {
+                <section class="confirmation"
+                         role="group"
+                         aria-labelledby="confirmation-heading">
+                    <h3 id="confirmation-heading">
+                        Confirm @selectedAction
+                    </h3>
+
+                    <p>@ConfirmationText</p>
+
+                    <div class="review-actions">
+                        <button type="button"
+                                disabled="@busy"
+                                @onclick="ConfirmAsync">
+                            @(busy
+                                ? "Processing..."
+                                : $"Confirm {selectedAction}")
+                        </button>
+
+                        <button type="button"
+                                disabled="@busy"
+                                @onclick="CancelConfirmation">
+                            Cancel
+                        </button>
+                    </div>
+                </section>
+            }
+
+            @if (busy)
+            {
+                <p role="status" aria-live="polite">
+                    Processing the review action. Please wait...
+                </p>
+            }
+        </section>
+    }
+
+    <footer>
+        @if (!completed)
+        {
+            <button type="button"
+                    disabled="@(loading || busy)"
+                    @onclick="LoadAsync">
+                Refresh details
+            </button>
+        }
+
+        <a href="change-requests">Back to Pending requests</a>
+    </footer>
+</main>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private readonly CancellationTokenSource lifetime = new();
+
+    private ChangeRequestDetailDto? request;
+    private ReviewAction? selectedAction;
+
+    private string? errorMessage;
+    private string? successMessage;
+
+    private bool loading;
+    private bool busy;
+    private bool requiresRefresh;
+    private bool completed;
+
+    private int loadVersion;
+    private int? displayedId;
+
+    private enum ReviewAction
+    {
+        Approve,
+        Decline,
+        Return
+    }
+
+    private bool IsPending =>
+        request is not null &&
+        string.Equals(
+            request.Status,
+            "Pending",
+            StringComparison.OrdinalIgnoreCase);
+
+    private bool CanReview =>
+        IsPending &&
+        !loading &&
+        !busy &&
+        !requiresRefresh &&
+        !completed;
+
+    private string ConfirmationText => selectedAction switch
+    {
+        ReviewAction.Approve =>
+            "Apply the proposed change and remove this change request?",
+
+        ReviewAction.Decline =>
+            "Discard this change request and remove the files stored for it?",
+
+        ReviewAction.Return =>
+            "Return this change request to the staff member for correction?",
+
+        _ => ""
+    };
+
+    protected override Task OnParametersSetAsync()
+    {
+        if (displayedId == Id)
+        {
+            return Task.CompletedTask;
+        }
+
+        displayedId = Id;
+
+        // An older operation must not update a different request page.
+        busy = false;
+        return LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        if (busy || lifetime.IsCancellationRequested)
+        {
+            return;
+        }
+
+        int version = ++loadVersion;
+        int requestedId = Id;
+
+        loading = true;
+        request = null;
+        selectedAction = null;
+        errorMessage = null;
+        successMessage = null;
+        requiresRefresh = true;
+        completed = false;
+
+        try
+        {
+            ChangeRequestDetailDto loadedRequest =
+                await ReviewService.GetSingleAsync(
+                    requestedId,
+                    lifetime.Token);
+
+            if (!IsCurrent(version, requestedId))
+            {
+                return;
+            }
+
+            request = loadedRequest;
+            requiresRefresh = false;
+        }
+        catch (OperationCanceledException)
+            when (lifetime.IsCancellationRequested)
+        {
+        }
+        catch (Exception ex) when (
+            ex is HttpRequestException or
+            OperationCanceledException or
+            System.Text.Json.JsonException or
+            InvalidOperationException)
+        {
+            if (IsCurrent(version, requestedId))
+            {
+                errorMessage = DescribeError(ex, reviewing: false);
+            }
+        }
+        finally
+        {
+            if (IsCurrent(version, requestedId))
+            {
+                loading = false;
+            }
+        }
+    }
+
+    private void BeginConfirmation(ReviewAction action)
+    {
+        if (!CanReview || selectedAction is not null)
+        {
+            return;
+        }
+
+        errorMessage = null;
+        successMessage = null;
+        selectedAction = action;
+    }
+
+    private void CancelConfirmation()
+    {
+        if (!busy)
+        {
+            selectedAction = null;
+        }
+    }
+
+    private async Task ConfirmAsync()
+    {
+        if (!CanReview || selectedAction is not ReviewAction action)
+        {
+            return;
+        }
+
+        int version = loadVersion;
+        int requestedId = request!.Id;
+
+        // Set this before awaiting to block repeated clicks.
+        busy = true;
+        errorMessage = null;
+        successMessage = null;
+
+        try
+        {
+            ChangeRequestDto? returnedRequest = null;
+
+            switch (action)
+            {
+                case ReviewAction.Approve:
+                    await ReviewService.ApproveAsync(
+                        requestedId,
+                        lifetime.Token);
+                    break;
+
+                case ReviewAction.Decline:
+                    await ReviewService.DeclineAsync(
+                        requestedId,
+                        lifetime.Token);
+                    break;
+
+                case ReviewAction.Return:
+                    returnedRequest = await ReviewService.ReturnAsync(
+                        requestedId,
+                        lifetime.Token);
+                    break;
+            }
+
+            if (!IsCurrent(version, requestedId))
+            {
+                return;
+            }
+
+            if (action == ReviewAction.Return)
+            {
+                if (returnedRequest is null ||
+                    returnedRequest.Id != requestedId ||
+                    !string.Equals(
+                        returnedRequest.Status,
+                        "Returned",
+                        StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new InvalidOperationException(
+                        "The server did not confirm a Returned request.");
+                }
+
+                // Keep the existing payload while updating response metadata.
+                request!.Status = returnedRequest.Status;
+
+                successMessage =
+                    $"Request #{requestedId} was returned for correction.";
+            }
+            else
+            {
+                // Approve and Decline return 204; the request is removed.
+                request = null;
+                completed = true;
+
+                successMessage = action == ReviewAction.Approve
+                    ? $"Request #{requestedId} was approved. " +
+                      "The change was applied and the request was removed."
+                    : $"Request #{requestedId} was declined " +
+                      "and the request was removed.";
+            }
+        }
+        catch (OperationCanceledException)
+            when (lifetime.IsCancellationRequested)
+        {
+        }
+        catch (Exception ex) when (
+            ex is HttpRequestException or
+            OperationCanceledException or
+            System.Text.Json.JsonException or
+            InvalidOperationException)
+        {
+            if (IsCurrent(version, requestedId))
+            {
+                requiresRefresh = true;
+                errorMessage = DescribeError(ex, reviewing: true);
+            }
+        }
+        finally
+        {
+            if (IsCurrent(version, requestedId))
+            {
+                busy = false;
+                selectedAction = null;
+            }
+        }
+    }
+
+    private bool IsCurrent(int version, int requestedId)
+    {
+        return version == loadVersion &&
+               requestedId == Id &&
+               !lifetime.IsCancellationRequested;
+    }
+
+    private static string DescribeError(
+        Exception error,
+        bool reviewing)
+    {
+        if (error is HttpRequestException httpError)
+        {
+            return httpError.StatusCode is not null
+                ? httpError.Message
+                : reviewing
+                    ? "The review action could not be confirmed. " +
+                      "Check the connection and refresh the request."
+                    : "Could not connect to WebApi. Try refreshing.";
+        }
+
+        if (error is OperationCanceledException)
+        {
+            return reviewing
+                ? "The review action timed out and its result is unknown."
+                : "Loading request details timed out.";
+        }
+
+        return reviewing
+            ? "The server response did not confirm the review action."
+            : "WebApi returned an invalid request-details response.";
+    }
+
+    public void Dispose()
+    {
+        lifetime.Cancel();
+        lifetime.Dispose();
+    }
+}
