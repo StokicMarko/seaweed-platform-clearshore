@@ -40,7 +40,7 @@
             <InputFile id="media-file"
                        @ref="fileInput"
                        OnChange="OnFileSelected"
-                       accept=".jpg,.jpeg,.png,.webp,.mp4,.glb"
+                       accept="@AcceptedExtensions"
                        disabled="@Busy"
                        aria-describedby="upload-rules" />
 
