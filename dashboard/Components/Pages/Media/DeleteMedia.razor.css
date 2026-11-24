@@ -1,0 +1,72 @@
+/* Match the existing media area. */
+.delete-media {
+    padding: 24px;
+    min-height: 100%;
+    background: #1b3e78;
+    color: #ffffff;
+}
+
+.delete-media header {
+    margin-bottom: 28px;
+}
+
+.delete-media header p {
+    font-size: 0.8rem;
+    letter-spacing: 0.15em;
+}
+
+.delete-media a {
+    color: #ffffff;
+    text-underline-offset: 3px;
+}
+
+.delete-media section {
+    max-width: 960px;
+}
+
+.delete-media dl {
+    margin: 24px 0;
+    padding: 20px;
+    background: #294f85;
+    border: 1px solid #7290b8;
+    border-radius: 12px;
+}
+
+.delete-media dt {
+    margin-top: 16px;
+    font-weight: bold;
+}
+
+.delete-media dt:first-child {
+    margin-top: 0;
+}
+
+.delete-media dd {
+    margin: 6px 0 0;
+    overflow-wrap: anywhere;
+}
+
+.delete-media footer {
+    margin-top: 24px;
+}
+
+.delete-media footer a {
+    display: inline-block;
+    margin-left: 20px;
+}
+
+.delete-media a:focus-visible,
+.delete-media button:focus-visible {
+    outline: 3px solid #a9d9ff;
+    outline-offset: 4px;
+}
+
+.delete-media button:disabled {
+    cursor: not-allowed;
+}
+
+@media (max-width: 600px) {
+    .delete-media {
+        padding: 16px;
+    }
+}

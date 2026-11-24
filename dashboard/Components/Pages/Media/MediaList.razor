@@ -74,6 +74,13 @@ else
                            aria-label="@($"Edit {item.Title.En}")">
                             Edit
                         </a>
+
+                        <span aria-hidden="true"> | </span>
+
+                        <a href="@($"media/{item.Id}/delete")"
+                           aria-label="@($"Delete {item.Title.En}")">
+                            Delete
+                        </a>
                     </td>
                 </tr>
             }
