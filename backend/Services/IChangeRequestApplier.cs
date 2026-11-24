@@ -18,4 +18,8 @@ public interface IChangeRequestApplier
 
     /// Deletes the files stored for this request. Decline
     Task CleanupAsync(ChangeRequest request, CancellationToken cancellationToken);
+    
+    // The files that belong to this request (the new upload). Empty list when there is none.
+    /// Used by the admin preview: only this applier can read its own payload.
+    IReadOnlyList<RequestFile> GetFiles(ChangeRequest request);
 }
