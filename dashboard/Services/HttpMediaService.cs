@@ -1,7 +1,6 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using System.Text.Json;
 using ApiContracts.ChangeRequests;
 using ApiContracts.Media;
 using Dashboard.Models;
@@ -125,91 +124,11 @@ public class HttpMediaService(HttpClient http) : IMediaService
             };
         }
 
-        List<string> errors = new();
-
-        // Read validation errors from the API.
-        if (response.StatusCode == HttpStatusCode.BadRequest)
-        {
-            try
-            {
-                string responseText =
-                    await response.Content.ReadAsStringAsync(
-                        cancellationToken);
-
-                using JsonDocument document =
-                    JsonDocument.Parse(responseText);
-
-                if (document.RootElement.TryGetProperty(
-                    "errors",
-                    out JsonElement details))
-                {
-                    if (details.ValueKind == JsonValueKind.Array)
-                    {
-                        ReadMessages(details, errors);
-                    }
-                    else if (details.ValueKind == JsonValueKind.Object)
-                    {
-                        foreach (JsonProperty property
-                                 in details.EnumerateObject())
-                        {
-                            ReadMessages(property.Value, errors);
-                        }
-                    }
-                }
-
-                if (errors.Count == 0 &&
-                    document.RootElement.TryGetProperty(
-                        "title",
-                        out JsonElement title) &&
-                    title.ValueKind == JsonValueKind.String)
-                {
-                    errors.Add(
-                        title.GetString() ??
-                        "The submission was rejected.");
-                }
-            }
-            catch (JsonException)
-            {
-                // Use the fallback below for a non-JSON response.
-            }
-        }
-
-        if (errors.Count == 0)
-        {
-            if (response.StatusCode ==
-                HttpStatusCode.RequestEntityTooLarge)
-            {
-                errors.Add(
-                    "The server rejected the upload because it is too large. Check the displayed file limit.");
-            }
-            else
-            {
-                errors.Add(
-                    $"The submission could not be confirmed (HTTP {(int)response.StatusCode}). Check My requests before retrying.");
-            }
-        }
-
         return new MediaSubmissionResult
         {
-            Errors = errors
+            Errors = await ApiErrorReader.ReadAsync(
+                response,
+                cancellationToken)
         };
-    }
-
-    private static void ReadMessages(
-        JsonElement value,
-        List<string> errors)
-    {
-        if (value.ValueKind == JsonValueKind.String &&
-            !string.IsNullOrWhiteSpace(value.GetString()))
-        {
-            errors.Add(value.GetString()!);
-        }
-        else if (value.ValueKind == JsonValueKind.Array)
-        {
-            foreach (JsonElement item in value.EnumerateArray())
-            {
-                ReadMessages(item, errors);
-            }
-        }
     }
 }
