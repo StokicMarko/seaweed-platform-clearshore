@@ -8,6 +8,9 @@ public class Media
     public required LocalizedText Title { get; set; }
     public LocalizedText? Description { get; set; }
     public required string OriginalFileName { get; set; }
+    
+    //given name from the data server, media proto carry
+    public required string StoredFileName { get; set; }
     public required string ContentType { get; set; }
     public DateTimeOffset PublishedAt { get; set; }
     public DateTimeOffset UpdatedAt { get; set; }

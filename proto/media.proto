@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package clearshore;
 
+import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 import "common.proto";
 import "technology.proto";
@@ -10,10 +11,17 @@ option java_package = "com.clearshore.data.generated";
 option java_outer_classname = "MediaProto";
 option csharp_namespace = "GrpcRepositories.Generated";
 
-service MediaData {
+// Stores media items. The file itself is stored by FileData.Save before these calls; media items only point to it by its stored name (unique :))
+service MediaData { //lists the calls tier 2 may make on tier 3
   rpc GetMany (GetManyMediaRequest) returns (MediaList);
   rpc GetSingle (MediaId) returns (Media);
   rpc ReadFile (MediaId) returns (stream FileChunk);
+
+  rpc Create (CreateMediaRequest) returns (Media); //if media item aready uses stored file name, item is returned, nothing new is created.
+
+  rpc Update (UpdateMediaRequest) returns (Media); //replaces the data
+
+  rpc Delete (MediaId) returns (google.protobuf.Empty); //deletes media item row only, stored file deleted through FileData.delete
 }
 
 enum MediaType {
@@ -33,6 +41,7 @@ message Media {
   string content_type = 7;
   google.protobuf.Timestamp published_at = 8;
   google.protobuf.Timestamp updated_at = 9;
+  string stored_file_name = 10; //name given by the data server, businns logic uses it after updae or delete
 }
 
 message GetManyMediaRequest {
@@ -45,4 +54,32 @@ message MediaId {
 
 message MediaList {
   repeated Media items = 1;
+}
+
+// Everything needed to create a media item. The file is already saved.
+message CreateMediaRequest {
+  repeated string technology_types = 1;
+  MediaType media_type = 2;
+  LocalizedText title = 3;
+  // Not set = the media item has no description.
+  LocalizedText description = 4;
+  string original_file_name = 5;
+  string stored_file_name = 6;
+  string content_type = 7;
+}
+
+// Full new data (replacement) of an existing media item (not patch :p).
+message UpdateMediaRequest {
+  int32 id = 1;
+  repeated string technology_types = 2;
+  LocalizedText title = 3;
+  // Not set = the media item has no description after the update.
+  LocalizedText description = 4;   //MediaMapper
+
+  // The four file fields  set (new file replaces the old one)
+  // or all not set (the current file is kept).
+  optional MediaType media_type = 5;
+  optional string original_file_name = 6;
+  optional string stored_file_name = 7;
+  optional string content_type = 8;
 }

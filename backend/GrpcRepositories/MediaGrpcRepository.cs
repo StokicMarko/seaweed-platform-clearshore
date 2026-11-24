@@ -37,4 +37,29 @@ public class MediaGrpcRepository(Generated.MediaData.MediaDataClient client) : I
                 await destination.WriteAsync(chunk.Data.Memory, cancellationToken);
             }
         });
+
+    //Tier 2 asks data sever = new item row
+    public Task<Media> CreateAsync(MediaSubmission submission) =>
+        GrpcCall.RunAsync(async () => //runAsync runs the call and translates gRPC errors into pur exceptions
+        {
+            //mapper turns entity  (mediaSUubmission) into gRPC request message, client.CreateAsync send to the JAVA server and waits 
+            Generated.Media reply = await client.CreateAsync(MediaMapper.ToCreateRequest(submission));
+            
+            // mapper turns the gRPC reply back into entity, so tier 2 never sees gRPC types.
+            return MediaMapper.ToEntity(reply);
+        });
+
+    //same as create but with which media item (id) to replace
+    public Task<Media> UpdateAsync(int id, MediaSubmission submission) =>
+        GrpcCall.RunAsync(async () =>
+        {
+            Generated.Media reply = await client.UpdateAsync(MediaMapper.ToUpdateRequest(id, submission));
+            return MediaMapper.ToEntity(reply); //media item after update = reply
+        });
+
+    public Task DeleteAsync(int id) =>
+        GrpcCall.RunAsync(async () =>
+        {
+            await client.DeleteAsync(new Generated.MediaId { Id = id });
+        });
 }
