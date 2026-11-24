@@ -73,7 +73,9 @@
               @onsubmit:preventDefault
               novalidate>
 
-            <MediaForm Data="@formData"
+            <MediaForm @key="formVersion"
+                       Data="@formData"
+                       FieldErrors="@fieldErrors"
                        Rules="@rules"
                        Technologies="@technologies"
                        Busy="@(uploading || savedRequest is not null)"
@@ -108,6 +110,10 @@
                             This item will appear in the media list only after
                             Main Admin approval.
                         </p>
+
+                        <button type="button" @onclick="AddAnother">
+                            Add another
+                        </button>
                     </StatusMessage>
                 }
 
@@ -127,13 +133,15 @@
 </main>
 
 @code {
-    private readonly MediaFormData formData = new();
+    private MediaFormData formData = new();
+    private int formVersion;
     private readonly CancellationTokenSource lifetime = new();
 
     private List<TechnologyDto> technologies = new();
     private List<MediaUploadRuleDto> rules = new();
 
     private List<string> errors = new();
+    private Dictionary<string, string> fieldErrors = new();
     private readonly List<string> optionsErrors = new();
 
     private IBrowserFile? selectedFile;
@@ -237,6 +245,17 @@
     {
         selectedFile = file;
         errors.Clear();
+        fieldErrors.Remove("file");
+    }
+
+    private void AddAnother()
+    {
+        formData = new MediaFormData();
+        selectedFile = null;
+        savedRequest = null;
+        errors = new();
+        fieldErrors = new();
+        formVersion++;
     }
 
     private async Task SubmitAsync()
@@ -249,16 +268,24 @@
         }
 
         // Validate before opening or uploading the file.
-        errors = formData.Validate(
+        fieldErrors = formData.Validate(
             selectedFile?.Name,
             selectedFile?.Size ?? 0,
             rules,
             technologies.Select(item => item.Type));
 
+        errors = new();
+
         if (optionsErrors.Count > 0)
         {
             errors.Add(
                 "The form is not ready yet. Use Try again above before submitting.");
+        }
+
+        if (fieldErrors.Count > 0)
+        {
+            errors.Add(
+                "Some details are missing or incorrect. Check the fields marked below.");
         }
 
         if (errors.Count > 0)
