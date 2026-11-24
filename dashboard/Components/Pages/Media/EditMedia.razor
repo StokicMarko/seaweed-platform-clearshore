@@ -28,14 +28,14 @@
         </p>
     }
 
-    @if (errors.Count > 0)
+    @if (loadingErrors.Count > 0)
     {
         <StatusMessage IsError="true"
                        Title="The media details could not be loaded."
-                       Errors="@errors">
+                       Errors="@loadingErrors">
             <p>
-                The form is displayed below, but its fields remain
-                disabled until the existing media and options load.
+                The fields remain disabled until the existing
+                media and form options load.
             </p>
         </StatusMessage>
 
@@ -81,33 +81,62 @@
             }
         </section>
 
-        @* Display the shared form even when loading fails. *@
-        <MediaForm @key="loadVersion"
-                   Data="@formData"
-                   Technologies="@technologies"
-                   Rules="@rules"
-                   Busy="@(loading || media is null)"
-                   FileChanged="OnFileChanged" />
-
-        @if (selectedFile is not null)
+        @if (errors.Count > 0)
         {
-            <p role="status">
-                Replacement selected: @selectedFile.Name.
-            </p>
+            <StatusMessage IsError="true"
+                           Title="Check the following fields:"
+                           Errors="@errors" />
         }
 
-        <StatusMessage Title="Update submission is not connected yet.">
+        @if (validationPassed)
+        {
+            <StatusMessage Title="The current changes pass validation.">
+                <p>
+                    No update request has been submitted.
+                    The published media remains unchanged.
+                </p>
+            </StatusMessage>
+        }
+
+        @* Use our validator instead of native required-field popups. *@
+        <form @onsubmit="ValidateChanges"
+              @onsubmit:preventDefault
+              @oninput="OnFormChanged"
+              @onchange="OnFormChanged"
+              novalidate>
+
+            <MediaForm @key="loadVersion"
+                       Data="@formData"
+                       Technologies="@technologies"
+                       Rules="@rules"
+                       Busy="@FormUnavailable"
+                       FileChanged="OnFileChanged" />
+
+            @if (selectedFile is not null)
+            {
+                <p role="status">
+                    Replacement selected: @selectedFile.Name.
+                </p>
+            }
+
+            <footer class="form-actions">
+                <button type="submit"
+                        disabled="@FormUnavailable">
+                    Check changes
+                </button>
+
+                <a href="media">
+                    Cancel and return to Manage media
+                </a>
+            </footer>
+        </form>
+
+        <StatusMessage Title="Update submission is unavailable.">
             <p>
-                Changes on this page are not saved.
-                The published media remains unchanged.
+                Checking changes validates the form only.
+                Changes are not saved or submitted for approval.
             </p>
         </StatusMessage>
-
-        <footer class="form-actions">
-            <a href="media">
-                Cancel and return to Manage media
-            </a>
-        </footer>
     </section>
 </main>
 
@@ -122,11 +151,19 @@
 
     private List<TechnologyDto> technologies = new();
     private List<MediaUploadRuleDto> rules = new();
+
+    private List<string> loadingErrors = new();
     private List<string> errors = new();
 
     private IBrowserFile? selectedFile;
     private bool loading;
+    private bool validationPassed;
     private int loadVersion;
+
+    private bool FormUnavailable =>
+        loading ||
+        media is null ||
+        loadingErrors.Count > 0;
 
     protected override Task OnParametersSetAsync()
     {
@@ -139,9 +176,11 @@
         int requestedId = Id;
 
         loading = true;
+        loadingErrors = new();
         errors = new();
+        validationPassed = false;
 
-        // Clear the previous item so a failed load cannot show stale data.
+        // Clear previous values so failed navigation cannot show stale data.
         media = null;
         formData = new();
         technologies = new();
@@ -174,7 +213,6 @@
                     rule.AllowedExtensions.Count > 0)
                 .ToList();
 
-            // A newer navigation or retry takes precedence.
             if (version != loadVersion ||
                 lifetime.IsCancellationRequested)
             {
@@ -183,19 +221,20 @@
 
             if (loadedTechnologies.Count == 0)
             {
-                errors.Add("No technologies are available.");
+                loadingErrors.Add("No technologies are available.");
             }
 
             if (loadedRules.Count == 0)
             {
-                errors.Add("No upload rules are available.");
+                loadingErrors.Add("No upload rules are available.");
             }
 
-            if (errors.Count > 0)
+            if (loadingErrors.Count > 0)
             {
                 return;
             }
 
+            // Reuse the shared form model with the item's current values.
             formData = new MediaFormData
             {
                 TitleEn = loadedMedia.Title.En,
@@ -229,8 +268,7 @@
             if (version == loadVersion &&
                 !lifetime.IsCancellationRequested)
             {
-                // Use loading wording rather than the submission error text.
-                errors = new()
+                loadingErrors = new()
                 {
                     $"Could not load the {operation}. " +
                     "Check that WebApi, the Data Server and the " +
@@ -247,9 +285,43 @@
         }
     }
 
+    private void ValidateChanges()
+    {
+        errors = new();
+        validationPassed = false;
+
+        if (FormUnavailable || lifetime.IsCancellationRequested)
+        {
+            return;
+        }
+
+        // No replacement means keep the existing file.
+        // Any supplied replacement still receives full file validation.
+        errors = formData.Validate(
+            selectedFile?.Name,
+            selectedFile?.Size ?? 0,
+            rules,
+            technologies.Select(item => item.Type),
+            requireFile: false);
+
+        validationPassed = errors.Count == 0;
+    }
+
+    private void OnFormChanged(ChangeEventArgs args)
+    {
+        ClearValidation();
+    }
+
     private void OnFileChanged(IBrowserFile? file)
     {
         selectedFile = file;
+        ClearValidation();
+    }
+
+    private void ClearValidation()
+    {
+        errors.Clear();
+        validationPassed = false;
     }
 
     public void Dispose()
