@@ -25,7 +25,7 @@ builder.Services.AddTransient<IMediaWriter>(services =>
     services.GetRequiredService<HttpMediaService>());
 
 // Dashboard helper for technology choices.
-builder.Services.AddHttpClient<HttpTechnologyService>(
+builder.Services.AddHttpClient<ITechnologyService, HttpTechnologyService>(
     client =>
     {
         client.BaseAddress = new Uri(
