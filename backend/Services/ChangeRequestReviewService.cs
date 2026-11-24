@@ -10,6 +10,7 @@ namespace Services;
 public class ChangeRequestReviewService(
     IChangeRequestRepository changeRequestRepository,   // stored change requests (gRPC behind the interface)
     IChangeRequestApplierRegistry applierRegistry,       // finds the applier for a target type
+    IFileRepository fileRepository,                      // reads the stored files for preview
     ICurrentUser currentUser) : IChangeRequestReviewService   // who is asking
 {
     public async Task<List<ChangeRequest>> GetPendingAsync()
@@ -58,6 +59,28 @@ public class ChangeRequestReviewService(
         // Only the status changes. The staff member can fix and resubmit later.
         return await changeRequestRepository.UpdateStatusAsync(id, ChangeStatus.Returned);
     }
+    
+    public async Task<RequestFile> GetFileAsync(int id, string storedFileName)
+    {
+        RequireMainAdmin();
+        ChangeRequest request = await GetPendingRequestAsync(id);
+
+        // Only a file the applier says belongs to this request can be opened.
+        IChangeRequestApplier applier = applierRegistry.GetFor(request.TargetType);
+        RequestFile? file = applier.GetFiles(request).FirstOrDefault(f => f.StoredFileName == storedFileName);//give me the first entry that matches, or nothing if there is none
+
+        return file ?? throw new NotFoundException("That file does not belong to this request.");
+    }
+
+    public async Task CopyFileToAsync(int id, string storedFileName, Stream destination,
+        CancellationToken cancellationToken)
+    {
+        //can never start for a file that is not allowed.
+        RequestFile file = await GetFileAsync(id, storedFileName);
+        await fileRepository.CopyToAsync(file.StoredFileName, destination, cancellationToken);
+    }
+
+    
 
     // Rule: only the Main Admin reviews. Checked first
     private void RequireMainAdmin()
