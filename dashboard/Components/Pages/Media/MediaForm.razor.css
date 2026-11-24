@@ -50,11 +50,6 @@ textarea,
     line-height: 1.5;
 }
 
-textarea {
-    min-height: 180px;
-    resize: vertical;
-}
-
 input:focus-visible,
 textarea:focus-visible,
 .field ::deep input[type="file"]:focus-visible {
@@ -121,23 +116,6 @@ textarea:focus-visible,
     margin: 28px 0 20px;
 }
 
-.language-section {
-    box-sizing: border-box;
-    width: 100%;
-    min-width: 0;
-    margin: 0;
-    padding: 20px 22px 2px;
-    border: 1px solid #5273a3;
-    border-radius: 10px;
-    background: #224983;
-}
-
-.language-section legend {
-    padding: 0 8px;
-    font-size: 15px;
-    font-weight: 650;
-}
-
 /* Supporting text and file errors. */
 .helper {
     margin: 0;
@@ -163,12 +141,6 @@ small {
     border-radius: 6px;
     background: #7d2528;
     color: #ffffff;
-}
-
-@media (max-width: 850px) {
-    .language-section {
-        padding: 16px 16px 0;
-    }
 }
 
 @media (max-width: 420px) {

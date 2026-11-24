@@ -1,0 +1,23 @@
+.language-section {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+    padding: 20px 22px 2px;
+    border: 1px solid #5273a3;
+    border-radius: 10px;
+    background: #224983;
+}
+
+.language-section legend {
+    padding: 0 8px;
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 650;
+}
+
+@media (max-width: 850px) {
+    .language-section {
+        padding: 16px 16px 0;
+    }
+}

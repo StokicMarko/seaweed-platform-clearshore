@@ -1,0 +1,34 @@
+<fieldset class="language-section">
+    <legend>@Legend</legend>
+
+    <FormField Id="@($"title-{Code}")"
+               Label="Title (required)"
+               Value="@Title"
+               ValueChanged="TitleChanged" />
+
+    <FormField Id="@($"description-{Code}")"
+               Label="Description (required)"
+               Multiline="true"
+               Value="@Description"
+               ValueChanged="DescriptionChanged" />
+</fieldset>
+
+@code {
+    [Parameter, EditorRequired]
+    public string Legend { get; set; } = "";
+
+    [Parameter, EditorRequired]
+    public string Code { get; set; } = "";
+
+    [Parameter]
+    public string Title { get; set; } = "";
+
+    [Parameter]
+    public EventCallback<string> TitleChanged { get; set; }
+
+    [Parameter]
+    public string Description { get; set; } = "";
+
+    [Parameter]
+    public EventCallback<string> DescriptionChanged { get; set; }
+}
