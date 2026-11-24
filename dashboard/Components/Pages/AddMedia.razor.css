@@ -144,42 +144,6 @@ button:disabled {
 }
 
 /* Validation and pending confirmation. */
-.validation-banner,
-.validation-notice {
-    box-sizing: border-box;
-    width: calc(100% - 64px);
-    max-width: 960px;
-    margin: 24px 32px;
-    padding: 16px 20px;
-    border: 1px solid;
-    border-radius: 8px;
-}
-
-.validation-banner {
-    border-color: #e7b5ad;
-    background: #fff0ed;
-    color: #8b251c;
-}
-
-.validation-banner ul {
-    margin: 8px 0 0;
-    padding-left: 22px;
-}
-
-.validation-banner li {
-    margin-bottom: 5px;
-}
-
-.validation-notice {
-    border-color: #adccef;
-    background: #e9f3ff;
-    color: #173b70;
-}
-
-.validation-notice p {
-    margin: 8px 0 0;
-}
-
 .options-error {
     margin: 20px 0;
     padding: 16px;
@@ -209,12 +173,6 @@ button:disabled {
     .media-panel {
         width: calc(100% - 40px);
         margin: 24px 20px 0;
-    }
-
-    .validation-banner,
-    .validation-notice {
-        width: calc(100% - 40px);
-        margin: 20px;
     }
 }
 

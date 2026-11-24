@@ -38,32 +38,20 @@
 
     @if (errors.Count > 0)
     {
-        <div class="validation-banner" role="alert">
-            <strong>
-                The submission could not be completed:
-            </strong>
-
-            <ul>
-                @foreach (var error in errors)
-                {
-                    <li>@error</li>
-                }
-            </ul>
-        </div>
+        <StatusMessage IsError="true"
+                       Title="The submission could not be completed:"
+                       Errors="errors" />
     }
 
     @if (savedRequest is not null)
     {
-        <div class="validation-notice" role="status">
-            <strong>
-                Submitted for approval — request #@savedRequest.Id
-            </strong>
-
+        <StatusMessage Title="@($"Submitted for approval — request #{savedRequest.Id}")">
             <p>
-                Status: Pending. This item will appear in the media
-                list only after Main Admin approval.
+                Status: <StatusBadge Status="Pending" />
+                This item will appear in the media list only after
+                Main Admin approval.
             </p>
-        </div>
+        </StatusMessage>
     }
 
     <section class="media-panel">
