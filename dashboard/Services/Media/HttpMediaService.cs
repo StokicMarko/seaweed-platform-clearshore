@@ -74,7 +74,7 @@ public class HttpMediaService(HttpClient http) : IMediaReader, IUploadRulesServi
             {
                 Errors = new()
                 {
-                    "We could not confirm that your submission was saved. Check My requests before retrying."
+                    "We could not confirm that your submission was saved. Please try again in a moment."
                 }
             };
         }

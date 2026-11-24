@@ -67,7 +67,7 @@ public static class ApiErrorReader
             else
             {
                 errors.Add(
-                    "The submission could not be confirmed. Check My requests before retrying.");
+                    "Something went wrong and your submission may not have been saved. Please try again in a moment.");
             }
         }
 
