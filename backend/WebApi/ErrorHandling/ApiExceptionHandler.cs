@@ -13,6 +13,7 @@ public class ApiExceptionHandler : IExceptionHandler
         int status = exception switch
         {
             ValidationFailedException => StatusCodes.Status400BadRequest,
+            NotAllowedException => StatusCodes.Status403Forbidden,   // the user's role does not allow this action
             BadHttpRequestException badRequest => badRequest.StatusCode,   // for example 413: file bigger than the server accepts
             NotFoundException => StatusCodes.Status404NotFound,
             DataAccessException => StatusCodes.Status502BadGateway,
@@ -20,14 +21,14 @@ public class ApiExceptionHandler : IExceptionHandler
         };
         string title = status == StatusCodes.Status500InternalServerError ? "Unexpected error" : exception.Message;
 
-        ProblemDetails problem = new() { Status = status, Title = title };               
-        if (exception is ValidationFailedException validation)                           
+        ProblemDetails problem = new() { Status = status, Title = title };
+        if (exception is ValidationFailedException validation)
         {
-            problem.Extensions["errors"] = validation.Errors;                            
+            problem.Extensions["errors"] = validation.Errors;
         }
-        
+
         httpContext.Response.StatusCode = status;
-        await httpContext.Response.WriteAsJsonAsync(problem, cancellationToken);    
+        await httpContext.Response.WriteAsJsonAsync(problem, cancellationToken);
         return true;
     }
 }
