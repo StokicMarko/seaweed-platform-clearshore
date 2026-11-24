@@ -36,24 +36,6 @@
         </div>
     </header>
 
-    @if (errors.Count > 0)
-    {
-        <StatusMessage IsError="true"
-                       Title="The submission could not be completed:"
-                       Errors="errors" />
-    }
-
-    @if (savedRequest is not null)
-    {
-        <StatusMessage Title="@($"Submitted for approval — request #{savedRequest.Id}")">
-            <p>
-                Status: <StatusBadge Status="Pending" />
-                This item will appear in the media list only after
-                Main Admin approval.
-            </p>
-        </StatusMessage>
-    }
-
     <section class="media-panel">
 
         <h2>Media library entry</h2>
@@ -109,6 +91,24 @@
                         Uploading and submitting your change request.
                         Please wait...
                     </p>
+                }
+
+                @if (errors.Count > 0)
+                {
+                    <StatusMessage IsError="true"
+                                   Title="The submission could not be completed:"
+                                   Errors="errors" />
+                }
+
+                @if (savedRequest is not null)
+                {
+                    <StatusMessage Title="@($"Submitted for approval — request #{savedRequest.Id}")">
+                        <p>
+                            Status: <StatusBadge Status="Pending" />
+                            This item will appear in the media list only after
+                            Main Admin approval.
+                        </p>
+                    </StatusMessage>
                 }
 
                 <button type="submit"
