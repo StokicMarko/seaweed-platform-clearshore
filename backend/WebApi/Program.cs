@@ -32,6 +32,12 @@ builder.Services.AddScoped<ICurrentUser, ConfiguredCurrentUser>();      //CHANGE
 builder.Services.AddScoped<IMediaSubmissionService, MediaSubmissionService>();
 builder.Services.AddScoped<IChangeRequestSubmitter, ChangeRequestSubmitter>();
 
+// One line per target. 
+builder.Services.AddScoped<IChangeRequestApplier, MediaChangeRequestApplier>();
+// The registry receives every applier registered above and finds one by target type.
+builder.Services.AddScoped<IChangeRequestApplierRegistry, ChangeRequestApplierRegistry>();
+
+
 // The server must accept the biggest allowed file, or large videos fail  (before rules run)
 MediaUploadOptions uploadOptions = builder.Configuration
     .GetSection(MediaUploadOptions.SectionName).Get<MediaUploadOptions>() ?? new MediaUploadOptions();
