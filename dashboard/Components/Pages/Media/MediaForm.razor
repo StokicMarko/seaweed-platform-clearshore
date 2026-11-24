@@ -21,7 +21,7 @@
                 @if (Rules.Count == 0)
                 {
                     <span>
-                        Upload settings must load before choosing a file.
+                        The allowed file types are not available yet.
                     </span>
                 }
 
@@ -84,8 +84,8 @@
             @if (Technologies.Count == 0)
             {
                 <p class="helper">
-                    No technology choices are loaded.
-                    Use Reload options above.
+                    No technologies are available yet.
+                    Use Try again above.
                 </p>
             }
 
@@ -198,12 +198,12 @@
         if (Rules.Count == 0)
         {
             fileError =
-                "Cannot validate this file because upload settings have not loaded. Start WebApi, then click Reload options.";
+                "This file cannot be checked yet because the form is not ready. Use Try again above.";
         }
         else if (selectedRule is null)
         {
             fileError =
-                "Unsupported file format. Choose one of the formats listed above.";
+                "This file type is not supported. Choose one of the file types listed above.";
         }
         else if (selectedFile.Size == 0)
         {
@@ -255,7 +255,7 @@
         catch (JSException)
         {
             fileError ??=
-                "The preview could not be displayed. Select the file again.";
+                "The preview could not be shown. Choose the file again.";
         }
     }
 

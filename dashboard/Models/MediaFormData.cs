@@ -39,12 +39,12 @@ public class MediaFormData
             if (rules.Count == 0)
             {
                 errors.Add(
-                    "Upload settings are unavailable. Load them before submitting.");
+                    "The form is not ready yet. Use Try again above before submitting.");
             }
             else if (rule is null)
             {
                 errors.Add(
-                    "Unsupported file format. Choose one of the formats listed above the file picker.");
+                    "This file type is not supported. Choose one of the file types listed above.");
             }
             else if (fileSize > rule.MaxBytes)
             {
@@ -64,7 +64,7 @@ public class MediaFormData
         if (TechnologyTypes.Any(type => !known.Contains(type)))
         {
             errors.Add(
-                "One or more technologies are no longer available. Reload the options and select again.");
+                "One or more chosen technologies are no longer available. Use Try again above and choose again.");
         }
 
         // All titles and descriptions are required.

@@ -48,7 +48,7 @@
         @if (loading)
         {
             <p role="status">
-                Loading technologies and upload settings...
+                Getting the form ready...
             </p>
         }
 
@@ -63,7 +63,7 @@
                 <button type="button"
                         @onclick="LoadOptionsAsync"
                         disabled="@(loading || uploading || savedRequest is not null)">
-                    Reload options
+                    Try again
                 </button>
             </div>
         }
@@ -178,7 +178,7 @@
                 if (technologies.Count == 0)
                 {
                     optionsErrors.Add(
-                        "No technologies are available. Check the API seed data.");
+                        "There are no technologies to choose from yet. Please contact support.");
                 }
             }
             catch (Exception ex) when (
@@ -189,7 +189,7 @@
                 if (!lifetime.IsCancellationRequested)
                 {
                     optionsErrors.Add(
-                        "Could not load technologies. Check that WebApi and Data Server are running.");
+                        "The list of technologies could not be loaded. Please try again in a moment.");
                 }
             }
 
@@ -212,7 +212,7 @@
                 if (rules.Count == 0)
                 {
                     optionsErrors.Add(
-                        "No upload rules are configured on the API.");
+                        "File uploads are not available right now. Please contact support.");
                 }
             }
             catch (Exception ex) when (
@@ -223,7 +223,7 @@
                 if (!lifetime.IsCancellationRequested)
                 {
                     optionsErrors.Add(
-                        "Could not load upload limits. Check WebApi and the upload-rules endpoint.");
+                        "The allowed file types could not be loaded. Please try again in a moment.");
                 }
             }
         }
@@ -258,7 +258,7 @@
         if (optionsErrors.Count > 0)
         {
             errors.Add(
-                "Resolve the option-loading errors before submitting.");
+                "The form is not ready yet. Use Try again above before submitting.");
         }
 
         if (errors.Count > 0)
@@ -293,7 +293,7 @@
         catch (IOException)
         {
             errors.Add(
-                "The file could not be read within its allowed size. Select it again and check the displayed limit.");
+                "The file could not be read. Choose it again and check that it is within the size limit.");
         }
         catch (Exception ex) when (
             ex is HttpRequestException or
