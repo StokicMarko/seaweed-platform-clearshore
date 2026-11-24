@@ -108,4 +108,8 @@ public class ChangeRequest {
     public Integer getReviewedBy() {
         return reviewedBy;
     }
+
+    public void updateStatus(ChangeStatus status) {
+        this.status = status;
+    }
 }
