@@ -134,15 +134,6 @@ small {
     overflow-wrap: anywhere;
 }
 
-.file-error {
-    margin: 0;
-    padding: 10px 12px;
-    border: 1px solid #ffc5bd;
-    border-radius: 6px;
-    background: #7d2528;
-    color: #ffffff;
-}
-
 @media (max-width: 420px) {
     .technology-options {
         flex-direction: column;
