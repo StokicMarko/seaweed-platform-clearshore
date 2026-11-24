@@ -23,17 +23,6 @@
             <h1>Add media</h1>
         </div>
 
-        @* Prototype display only; this does not change authorization. *@
-        <div class="role-selector">
-            <label for="view-as">View as</label>
-
-            <select id="view-as"
-                    @bind="selectedView"
-                    disabled="@uploading">
-                <option>Staff Member</option>
-                <option>Main Admin</option>
-            </select>
-        </div>
     </header>
 
     @if (errors.Count > 0)
@@ -142,7 +131,6 @@
     private bool loading;
     private bool uploading;
 
-    private string selectedView = "Staff Member";
 
     protected override Task OnInitializedAsync()
     {
