@@ -13,6 +13,7 @@ public class ApiExceptionHandler : IExceptionHandler
         int status = exception switch
         {
             ValidationFailedException => StatusCodes.Status400BadRequest,
+            NotAllowedException => StatusCodes.Status403Forbidden,   // the user's role does not allow this action
             BadHttpRequestException badRequest => badRequest.StatusCode,   // for example 413: file bigger than the server accepts
             OpenRequestExistsException => StatusCodes.Status409Conflict,   // UC04 ALT1
             NotFoundException => StatusCodes.Status404NotFound,
