@@ -59,6 +59,37 @@ public class MediaChangeRequestApplier(
         }
     }
 
+    // Admin preview: the file uploaded for this request (none for a delete, or an update that keeps the file).
+    public IReadOnlyList<RequestFile> GetFiles(ChangeRequest request)
+    {
+        // A delete request carries no new file.
+        if (request.Type == ChangeType.Delete)
+        {
+            return [];
+        }
+
+        MediaSubmission submission;
+        try
+        {
+            submission = ReadPayload(request);
+        }
+        catch (ValidationFailedException)
+        {
+            // A broken payload has no known file. The preview shows nothing instead of failing.
+            return [];
+        }
+
+        // Not set = the update kept the current file, so this request carries no new file.
+        if (string.IsNullOrWhiteSpace(submission.StoredFileName)
+            || string.IsNullOrWhiteSpace(submission.OriginalFileName)
+            || string.IsNullOrWhiteSpace(submission.ContentType))
+        {
+            return [];
+        }
+
+        return [new RequestFile(submission.StoredFileName, submission.OriginalFileName, submission.ContentType)];
+    }
+
     private async Task ApplyCreateAsync(ChangeRequest request)
     {
         MediaSubmission submission = ReadPayload(request);

@@ -38,7 +38,8 @@ builder.Services.AddScoped<IMediaChangeService, MediaChangeService>();
 builder.Services.AddScoped<IChangeRequestApplier, MediaChangeRequestApplier>();
 // The registry receives every applier registered above and finds one by target type.
 builder.Services.AddScoped<IChangeRequestApplierRegistry, ChangeRequestApplierRegistry>();
-
+// The Main Admin's review work (list, open, approve, decline, return).
+builder.Services.AddScoped<IChangeRequestReviewService, ChangeRequestReviewService>();
 
 // The server must accept the biggest allowed file, or large videos fail  (before rules run)
 MediaUploadOptions uploadOptions = builder.Configuration
