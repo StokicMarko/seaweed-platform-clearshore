@@ -35,14 +35,14 @@ CREATE TABLE media_item
     title_en     VARCHAR(200) NOT NULL,
     title_es     VARCHAR(200) NOT NULL,
     title_fr     VARCHAR(200) NOT NULL,
-    text_en      TEXT,
-    text_es      TEXT,
-    text_fr      TEXT,
-    published_at TIMESTAMPTZ  NOT NULL DEFAULT now(),
-    updated_at   TIMESTAMPTZ  NOT NULL DEFAULT now(),
-    CONSTRAINT media_item_text_all_or_none CHECK (
-        (text_en IS NULL) = (text_es IS NULL)
-            AND (text_en IS NULL) = (text_fr IS NULL))
+    description_en TEXT,
+    description_es TEXT,
+    description_fr TEXT,
+    published_at   TIMESTAMPTZ  NOT NULL DEFAULT now(),
+    updated_at     TIMESTAMPTZ  NOT NULL DEFAULT now(),
+    CONSTRAINT media_item_description_all_or_none CHECK (
+        (description_en IS NULL) = (description_es IS NULL)
+            AND (description_en IS NULL) = (description_fr IS NULL))
 );
 
 CREATE TABLE media_technology
