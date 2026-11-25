@@ -6,6 +6,8 @@ import com.clearshore.data.entity.ChangeTarget;
 import com.clearshore.data.entity.ChangeType;
 import com.clearshore.data.generated.ChangeRequestProto;
 
+import java.util.List;
+
 public final class ChangeRequestMapper {
 
     private ChangeRequestMapper() {
@@ -38,7 +40,7 @@ public final class ChangeRequestMapper {
         return builder.build();
     }
 
-    private static ChangeTarget toEntity(ChangeRequestProto.ChangeTarget target) {
+    public static ChangeTarget toEntity(ChangeRequestProto.ChangeTarget target) {
         return switch (target) {
             case CHANGE_TARGET_NEWS -> ChangeTarget.NEWS;
             case CHANGE_TARGET_MEDIA -> ChangeTarget.MEDIA;
@@ -46,6 +48,20 @@ public final class ChangeRequestMapper {
             case CHANGE_TARGET_REFERENCE_ADJUSTMENT -> ChangeTarget.REFERENCE_ADJUSTMENT;
             default -> throw new IllegalArgumentException("Unknown change target: " + target);
         };
+    }
+
+    public static ChangeStatus toEntity(ChangeRequestProto.ChangeStatus status) {
+        return switch (status) {
+            case CHANGE_STATUS_PENDING -> ChangeStatus.PENDING;
+            case CHANGE_STATUS_RETURNED -> ChangeStatus.RETURNED;
+            default -> throw new IllegalArgumentException("Unknown change status: " + status);
+        };
+    }
+
+    public static ChangeRequestProto.ChangeRequestList toProtoList(List<ChangeRequest> requests) {
+        return ChangeRequestProto.ChangeRequestList.newBuilder()
+            .addAllItems(requests.stream().map(ChangeRequestMapper::toProto).toList())
+            .build();
     }
 
     private static ChangeType toEntity(ChangeRequestProto.ChangeType type) {

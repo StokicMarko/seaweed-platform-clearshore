@@ -30,6 +30,7 @@ class MediaItemMapperTest {
         assertEquals("mesh-boom-hd", proto.getTechnologies(0).getType());
         assertEquals("boom.mp4", proto.getOriginalFileName());
         assertEquals(mediaItem.getPublishedAt().getEpochSecond(), proto.getPublishedAt().getSeconds());
+        assertEquals("3f2a-boom.mp4", proto.getStoredFileName());
     }
 
     @Test

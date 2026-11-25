@@ -49,4 +49,10 @@ public class MediaFile {
     public String getContentType() {
         return contentType;
     }
+
+     void replace(String originalFileName, String storedFileName, String contentType) {
+         this.originalFileName = originalFileName;
+         this.storedFileName = storedFileName;
+         this.contentType = contentType;
+     }
 }

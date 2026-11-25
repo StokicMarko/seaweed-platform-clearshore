@@ -140,4 +140,27 @@ public class MediaItem {
     public Instant getUpdatedAt() {
         return updatedAt;
     }
+
+    public void updateDetails(Set<Technology> technologies,
+        String titleEn, String titleEs, String titleFr,
+        String descriptionEn, String descriptionEs, String descriptionFr) {
+        if (technologies == null || technologies.isEmpty()) {
+            throw new IllegalArgumentException("A media item needs at least one technology");
+        }
+        this.technologies.clear();
+        this.technologies.addAll(technologies);
+        this.titleEn = titleEn;
+        this.titleEs = titleEs;
+        this.titleFr = titleFr;
+        this.descriptionEn = descriptionEn;
+        this.descriptionEs = descriptionEs;
+        this.descriptionFr = descriptionFr;
+        this.updatedAt = Instant.now();
+    }
+
+    public void replaceFile(MediaType mediaType, String originalFileName,
+        String storedFileName, String contentType) {
+        this.mediaType = mediaType;
+        this.file.replace(originalFileName, storedFileName, contentType);
+    }
 }
