@@ -3,6 +3,7 @@
 @using Dashboard.Components.Shared
 @using Dashboard.Services.Media
 @inject IMediaReader MediaReader
+@implements IDisposable
 
 <PageTitle>Media</PageTitle>
 
@@ -70,17 +71,9 @@ else
                     </td>
 
                     <td>
-                        <a href="@($"media/{item.Id}/edit")"
-                           aria-label="@($"Edit {item.Title.En}")">
-                            Edit
-                        </a>
-
-                        <span aria-hidden="true"> | </span>
-
-                        <a href="@($"media/{item.Id}/delete")"
-                           aria-label="@($"Delete {item.Title.En}")">
-                            Delete
-                        </a>
+                        <MediaRequestActions MediaId="@item.Id"
+                                             Title="@item.Title.En"
+                                             BlockingStatus="@blockingStatuses.GetValueOrDefault(item.Id)" />
                     </td>
                 </tr>
             }
@@ -89,6 +82,8 @@ else
 }
 
 @code {
+    private readonly CancellationTokenSource lifetime = new();
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<int, string> blockingStatuses = new();
     private List<MediaDto>? media;
     private string? errorMessage;
 
@@ -97,13 +92,50 @@ else
         try
         {
             media = await MediaReader.GetManyAsync();
+            await Parallel.ForEachAsync(
+                media,
+                                new ParallelOptions
+                {
+                    MaxDegreeOfParallelism = 4,
+                    CancellationToken = lifetime.Token
+                },
+                LoadBlockingStatusAsync);
+        }
+        catch (OperationCanceledException) when (lifetime.IsCancellationRequested)
+        {
         }
         catch (Exception ex) when (
             ex is HttpRequestException or
-            System.Text.Json.JsonException or
-            OperationCanceledException)
+                System.Text.Json.JsonException or
+                OperationCanceledException)
         {
             errorMessage = ex.Message;
         }
+    }
+
+    private async ValueTask LoadBlockingStatusAsync(
+        MediaDto item,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            blockingStatuses[item.Id] =
+                await MediaReader.GetBlockingRequestStatusAsync(
+                    item.Id, cancellationToken);
+        }
+        catch (Exception ex) when (
+            ex is HttpRequestException or
+                System.Text.Json.JsonException or
+                InvalidOperationException or
+                OperationCanceledException)
+        {
+            // A missing status leaves this row's actions disabled.
+        }
+    }
+
+    public void Dispose()
+    {
+        lifetime.Cancel();
+        lifetime.Dispose();
     }
 }

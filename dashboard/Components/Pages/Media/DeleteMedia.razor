@@ -1,8 +1,10 @@
 @page "/media/{Id:int}/delete"
+@using ApiContracts.ChangeRequests
 @using ApiContracts.Media
 @using Dashboard.Components.Shared
 @using Dashboard.Services.Media
 @inject IMediaReader MediaReader
+@inject IMediaWriter MediaWriter
 @implements IDisposable
 
 <PageTitle>Delete media</PageTitle>
@@ -72,27 +74,28 @@
             </dl>
         }
 
-        <StatusMessage Title="Deletion submission is unavailable.">
-            <p>
-                No deletion request has been submitted.
-                You can cancel and return to Manage media.
-            </p>
-        </StatusMessage>
+        @if (submissionErrors.Count > 0)
+        {
+            <StatusMessage IsError="true"
+                           Title="Could not submit the deletion request."
+                           Errors="@submissionErrors" />
+        }
+
+        @if (savedRequest is not null)
+        {
+            <StatusMessage Title="Deletion request submitted">
+                <p>Request #@savedRequest.Id is pending approval.</p>
+            </StatusMessage>
+        }
 
         <footer>
-            @* Enabled when the deletion-request API is integrated. *@
-            <button type="button"
-                    disabled
-                    aria-describedby="submission-unavailable">
-                Submit deletion request
-            </button>
-
-            <a href="media">Cancel</a>
-
-            <p id="submission-unavailable">
-                Submission will be available when the
-                deletion-request API is connected.
-            </p>
+        <button type="button"
+                @onclick="SubmitAsync"
+                disabled="@SubmissionUnavailable">
+            @(submitting ? "Submitting..." : "Submit deletion request")
+        </button>
+        
+                    <a href="media">Back to Manage media</a>
         </footer>
     </section>
 </main>
@@ -102,11 +105,16 @@
     public int Id { get; set; }
 
     private readonly CancellationTokenSource lifetime = new();
-
     private MediaDto? media;
     private string? errorMessage;
     private bool loading;
+    private bool submitting;
+    private ChangeRequestDto? savedRequest;
     private int loadVersion;
+    private List<string> submissionErrors = new();
+
+    private bool SubmissionUnavailable =>
+        loading || submitting || media is null || savedRequest is not null;
 
     protected override Task OnParametersSetAsync()
     {
@@ -117,36 +125,28 @@
     {
         int version = ++loadVersion;
         int requestedId = Id;
-
         loading = true;
+        submitting = false;
+        savedRequest = null;
+        submissionErrors.Clear();
         media = null;
         errorMessage = null;
 
         try
         {
             MediaDto loadedMedia = await MediaReader.GetSingleAsync(
-                requestedId,
-                lifetime.Token);
+                requestedId, lifetime.Token);
 
-            if (version == loadVersion &&
-                !lifetime.IsCancellationRequested)
+            if (version == loadVersion && !lifetime.IsCancellationRequested)
             {
                 media = loadedMedia;
             }
         }
-        catch (OperationCanceledException)
-            when (lifetime.IsCancellationRequested)
-        {
-            // Leaving the page cancels its request.
-        }
         catch (Exception ex) when (
-            ex is HttpRequestException or
-            System.Text.Json.JsonException or
-            InvalidOperationException or
-            OperationCanceledException)
+            ex is HttpRequestException or System.Text.Json.JsonException or
+            InvalidOperationException or OperationCanceledException)
         {
-            if (version == loadVersion &&
-                !lifetime.IsCancellationRequested)
+            if (version == loadVersion && !lifetime.IsCancellationRequested)
             {
                 errorMessage =
                     "Check that WebApi, the Data Server and the " +
@@ -158,6 +158,47 @@
             if (version == loadVersion)
             {
                 loading = false;
+            }
+        }
+    }
+
+    private async Task SubmitAsync()
+    {
+        if (SubmissionUnavailable || lifetime.IsCancellationRequested)
+        {
+            return;
+        }
+
+        int version = loadVersion;
+        submissionErrors.Clear();
+        submitting = true;
+
+        try
+        {
+            MediaSubmissionResult result = await MediaWriter.DeleteMediaAsync(
+                Id, lifetime.Token);
+
+            if (version == loadVersion && !lifetime.IsCancellationRequested)
+            {
+                savedRequest = result.Request;
+                submissionErrors = result.Errors;
+            }
+        }
+        catch (Exception ex) when (
+            ex is HttpRequestException or OperationCanceledException or
+            System.Text.Json.JsonException)
+        {
+            if (version == loadVersion && !lifetime.IsCancellationRequested)
+            {
+                submissionErrors.Add(
+                    "The submission could not be confirmed. Check My requests before retrying.");
+            }
+        }
+        finally
+        {
+            if (version == loadVersion)
+            {
+                submitting = false;
             }
         }
     }

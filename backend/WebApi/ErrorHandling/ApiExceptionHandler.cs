@@ -28,6 +28,11 @@ public class ApiExceptionHandler : IExceptionHandler
             problem.Extensions["errors"] = validation.Errors;
         }
 
+        if (exception is OpenRequestExistsException openRequest)
+        {
+            problem.Extensions["requestStatus"] = openRequest.Status.ToString();
+        }
+
         httpContext.Response.StatusCode = status;
         await httpContext.Response.WriteAsJsonAsync(problem, cancellationToken);
         return true;

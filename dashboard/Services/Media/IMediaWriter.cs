@@ -10,4 +10,15 @@ public interface IMediaWriter
         IBrowserFile file,
         long maximumFileBytes,
         CancellationToken cancellationToken = default);
+
+    Task<MediaSubmissionResult> UpdateMediaAsync(
+        int id,
+        MediaFormData form,
+        IBrowserFile? file,
+        long maximumFileBytes,
+        CancellationToken cancellationToken = default);
+
+    Task<MediaSubmissionResult> DeleteMediaAsync(
+        int id,
+        CancellationToken cancellationToken = default);
 }

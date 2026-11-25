@@ -10,5 +10,10 @@ public interface IMediaReader
         int id,
         CancellationToken cancellationToken = default);
 
+    // An empty string means changes are available.
+    Task<string> GetBlockingRequestStatusAsync(
+        int id,
+        CancellationToken cancellationToken = default);
+
     string GetFileUrl(MediaDto media);
 }

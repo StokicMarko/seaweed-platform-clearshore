@@ -1,4 +1,5 @@
 @page "/media/{Id:int}/edit"
+@using ApiContracts.ChangeRequests
 @using ApiContracts.Media
 @using ApiContracts.Technology
 @using Dashboard.Components.Pages
@@ -8,6 +9,7 @@
 @using Dashboard.Services.Media
 @using Microsoft.AspNetCore.Components.Forms
 @inject IMediaReader MediaReader
+@inject IMediaWriter MediaWriter
 @inject ITechnologyService TechnologyService
 @inject IUploadRulesService UploadRulesService
 @implements IDisposable
@@ -88,18 +90,14 @@
                            Errors="@errors" />
         }
 
-        @if (validationPassed)
+        @if (savedRequest is not null)
         {
-            <StatusMessage Title="The current changes pass validation.">
-                <p>
-                    No update request has been submitted.
-                    The published media remains unchanged.
-                </p>
-            </StatusMessage>
+            <StatusMessage Title="Update request submitted">
+            <p>Request #@savedRequest.Id is pending approval.</p>
+                        </StatusMessage>
         }
 
-        @* Use our validator instead of native required-field popups. *@
-        <form @onsubmit="ValidateChanges"
+        <form @onsubmit="SubmitAsync"
               @onsubmit:preventDefault
               @oninput="OnFormChanged"
               @onchange="OnFormChanged"
@@ -114,29 +112,16 @@
 
             @if (selectedFile is not null)
             {
-                <p role="status">
-                    Replacement selected: @selectedFile.Name.
-                </p>
+                <p role="status">Replacement selected: @selectedFile.Name.</p>
             }
 
             <footer class="form-actions">
-                <button type="submit"
-                        disabled="@FormUnavailable">
-                    Check changes
+                <button type="submit" disabled="@FormUnavailable">
+                    @(submitting ? "Submitting..." : "Submit update request")
                 </button>
-
-                <a href="media">
-                    Cancel and return to Manage media
-                </a>
+                <a href="media">Cancel and return to Manage media</a>
             </footer>
         </form>
-
-        <StatusMessage Title="Update submission is unavailable.">
-            <p>
-                Checking changes validates the form only.
-                Changes are not saved or submitted for approval.
-            </p>
-        </StatusMessage>
     </section>
 </main>
 
@@ -145,25 +130,21 @@
     public int Id { get; set; }
 
     private readonly CancellationTokenSource lifetime = new();
-
     private MediaDto? media;
     private MediaFormData formData = new();
-
     private List<TechnologyDto> technologies = new();
     private List<MediaUploadRuleDto> rules = new();
-
     private List<string> loadingErrors = new();
     private List<string> errors = new();
-
     private IBrowserFile? selectedFile;
     private bool loading;
-    private bool validationPassed;
+    private bool submitting;
+    private ChangeRequestDto? savedRequest;
     private int loadVersion;
 
     private bool FormUnavailable =>
-        loading ||
-        media is null ||
-        loadingErrors.Count > 0;
+        loading || submitting || savedRequest is not null ||
+        media is null || loadingErrors.Count > 0;
 
     protected override Task OnParametersSetAsync()
     {
@@ -174,13 +155,11 @@
     {
         int version = ++loadVersion;
         int requestedId = Id;
-
         loading = true;
+        submitting = false;
+        savedRequest = null;
         loadingErrors = new();
         errors = new();
-        validationPassed = false;
-
-        // Clear previous values so failed navigation cannot show stale data.
         media = null;
         formData = new();
         technologies = new();
@@ -192,11 +171,9 @@
         try
         {
             MediaDto loadedMedia = await MediaReader.GetSingleAsync(
-                requestedId,
-                lifetime.Token);
+                requestedId, lifetime.Token);
 
             operation = "technologies";
-
             List<TechnologyDto> loadedTechnologies =
                 (await TechnologyService.GetManyAsync(lifetime.Token))
                 .Where(item => !string.IsNullOrWhiteSpace(item.Type))
@@ -204,17 +181,12 @@
                 .ToList();
 
             operation = "upload settings";
-
             List<MediaUploadRuleDto> loadedRules =
-                (await UploadRulesService.GetUploadRulesAsync(
-                    lifetime.Token))
-                .Where(rule =>
-                    rule.MaxBytes > 0 &&
-                    rule.AllowedExtensions.Count > 0)
+                (await UploadRulesService.GetUploadRulesAsync(lifetime.Token))
+                .Where(rule => rule.MaxBytes > 0 && rule.AllowedExtensions.Count > 0)
                 .ToList();
 
-            if (version != loadVersion ||
-                lifetime.IsCancellationRequested)
+            if (version != loadVersion || lifetime.IsCancellationRequested)
             {
                 return;
             }
@@ -234,17 +206,14 @@
                 return;
             }
 
-            // Reuse the shared form model with the item's current values.
             formData = new MediaFormData
             {
                 TitleEn = loadedMedia.Title.En,
                 TitleEs = loadedMedia.Title.Es,
                 TitleFr = loadedMedia.Title.Fr,
-
                 DescriptionEn = loadedMedia.Description?.En ?? "",
                 DescriptionEs = loadedMedia.Description?.Es ?? "",
                 DescriptionFr = loadedMedia.Description?.Fr ?? "",
-
                 TechnologyTypes = loadedMedia.Technologies
                     .Select(item => item.Type)
                     .ToHashSet()
@@ -254,26 +223,13 @@
             rules = loadedRules;
             media = loadedMedia;
         }
-        catch (OperationCanceledException)
-            when (lifetime.IsCancellationRequested)
-        {
-            // Leaving the page cancels its requests.
-        }
         catch (Exception ex) when (
-            ex is HttpRequestException or
-            System.Text.Json.JsonException or
-            InvalidOperationException or
-            OperationCanceledException)
+            ex is HttpRequestException or System.Text.Json.JsonException or
+            InvalidOperationException or OperationCanceledException)
         {
-            if (version == loadVersion &&
-                !lifetime.IsCancellationRequested)
+            if (version == loadVersion && !lifetime.IsCancellationRequested)
             {
-                loadingErrors = new()
-                {
-                    $"Could not load the {operation}. " +
-                    "Check that WebApi, the Data Server and the " +
-                    "database are available, then select Try again."
-                };
+                loadingErrors.Add($"Could not load the {operation}. Select Try again.");
             }
         }
         finally
@@ -285,18 +241,13 @@
         }
     }
 
-    private void ValidateChanges()
+    private async Task SubmitAsync()
     {
-        errors = new();
-        validationPassed = false;
-
         if (FormUnavailable || lifetime.IsCancellationRequested)
         {
             return;
         }
 
-        // No replacement means keep the existing file.
-        // Any supplied replacement still receives full file validation.
         errors = formData.Validate(
             selectedFile?.Name,
             selectedFile?.Size ?? 0,
@@ -304,24 +255,63 @@
             technologies.Select(item => item.Type),
             requireFile: false);
 
-        validationPassed = errors.Count == 0;
+        if (errors.Count > 0)
+        {
+            return;
+        }
+
+        long maxBytes = selectedFile is null
+            ? 0
+            : MediaFormData.FindRule(selectedFile.Name, rules)!.MaxBytes;
+
+        int version = loadVersion;
+        submitting = true;
+
+        try
+        {
+            MediaSubmissionResult result = await MediaWriter.UpdateMediaAsync(
+                Id, formData, selectedFile, maxBytes, lifetime.Token);
+
+            if (version == loadVersion && !lifetime.IsCancellationRequested)
+            {
+                savedRequest = result.Request;
+                errors = result.Errors;
+            }
+        }
+        catch (IOException)
+        {
+            if (version == loadVersion && !lifetime.IsCancellationRequested)
+            {
+                errors.Add("The selected file could not be read. Select it again and check its size.");
+            }
+        }
+        catch (Exception ex) when (
+            ex is HttpRequestException or OperationCanceledException or
+            System.Text.Json.JsonException)
+        {
+            if (version == loadVersion && !lifetime.IsCancellationRequested)
+            {
+                errors.Add("The submission could not be confirmed. Check My requests before retrying.");
+            }
+        }
+        finally
+        {
+            if (version == loadVersion)
+            {
+                submitting = false;
+            }
+        }
     }
 
     private void OnFormChanged(ChangeEventArgs args)
     {
-        ClearValidation();
+        errors.Clear();
     }
 
     private void OnFileChanged(IBrowserFile? file)
     {
         selectedFile = file;
-        ClearValidation();
-    }
-
-    private void ClearValidation()
-    {
         errors.Clear();
-        validationPassed = false;
     }
 
     public void Dispose()
