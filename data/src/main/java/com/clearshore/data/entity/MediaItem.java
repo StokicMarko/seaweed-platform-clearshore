@@ -45,11 +45,11 @@ public class MediaItem {
     private String titleFr;
 
 
-    @Column(name = "text_en")
+    @Column(name = "description_en")
     private String descriptionEn;
-    @Column(name = "text_es")
+    @Column(name = "description_es")
     private String descriptionEs;
-    @Column(name = "text_fr")
+    @Column(name = "description_fr")
     private String descriptionFr;
 
 
