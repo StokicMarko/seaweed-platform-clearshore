@@ -53,4 +53,26 @@ public class OpenRequestGuardTests
         Add(ChangeTarget.Media, null, ChangeStatus.Pending);
         await Guard.EnsureNoOpenRequestAsync(ChangeTarget.Media, 5);
     }
+    
+    
+    [Fact]
+    public async Task Lists_the_open_requests_of_the_target_type()
+    {
+        Add(ChangeTarget.Media, 5, ChangeStatus.Pending);
+        Add(ChangeTarget.Media, 6, ChangeStatus.Returned);
+        Add(ChangeTarget.News, 7, ChangeStatus.Pending);      // another target type
+        Add(ChangeTarget.Media, null, ChangeStatus.Pending);  // a Create: it points at no item
+
+        List<ChangeRequest> open = await Guard.GetOpenAsync(ChangeTarget.Media);
+
+        Assert.Equal(new int?[] { 5, 6 }, open.Select(request => request.TargetId).OrderBy(id => id).ToArray());
+    }
+
+    [Fact]
+    public async Task Lists_nothing_when_there_are_no_requests()
+    {
+        List<ChangeRequest> open = await Guard.GetOpenAsync(ChangeTarget.Media);
+
+        Assert.Empty(open);
+    }
 }

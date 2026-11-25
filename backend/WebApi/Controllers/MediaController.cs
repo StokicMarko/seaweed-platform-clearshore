@@ -90,4 +90,12 @@ public class MediaController(
         ChangeRequest request = await changeService.SubmitDeleteAsync(id);
         return Accepted(DtoMapper.ToDto(request));
     }
+    
+    // Which media items have an open request (pending or returned). The list uses it to show a badge and to block Edit and Delete.
+    [HttpGet("open-requests")]
+    public async Task<ActionResult<List<OpenMediaRequestDto>>> GetOpenRequests()
+    {
+        List<ChangeRequest> requests = await changeService.GetOpenRequestsAsync();
+        return requests.Select(DtoMapper.ToOpenMediaRequestDto).ToList();
+    }
 }

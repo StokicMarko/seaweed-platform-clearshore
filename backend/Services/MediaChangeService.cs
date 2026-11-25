@@ -71,4 +71,7 @@ public class MediaChangeService(
         await EnsureCanChangeAsync(mediaId);
         return await submitter.SubmitAsync<MediaSubmission>(ChangeTarget.Media, ChangeType.Delete, mediaId, null, []);
     }
+    
+    public Task<List<ChangeRequest>> GetOpenRequestsAsync() =>
+        openRequestGuard.GetOpenAsync(ChangeTarget.Media);
 }
