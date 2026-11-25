@@ -36,6 +36,13 @@ public class HttpChangeRequestReviewService(HttpClient http)
             response,
             cancellationToken);
     }
+    
+    public string GetFileUrl(int id, string storedFileName)
+    {
+        return new Uri(
+            http.BaseAddress!,
+            $"api/change-requests/{id}/files/{Uri.EscapeDataString(storedFileName)}").ToString();
+    }
 
     public Task ApproveAsync(
         int id,
