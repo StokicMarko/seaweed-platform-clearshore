@@ -7,4 +7,7 @@ public interface IOpenRequestGuard
 {
     /// Throws OpenRequestExistsException when a pending or returned request exists for the item.
     Task EnsureNoOpenRequestAsync(ChangeTarget target, int targetId);
+    
+    /// Lists the open (pending or returned) requests of one target type that point at an existing item.
+    Task<List<ChangeRequest>> GetOpenAsync(ChangeTarget target);
 }

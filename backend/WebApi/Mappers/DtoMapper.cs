@@ -56,4 +56,11 @@ public static class DtoMapper //translator for Tier 2 to Tier 1
             ? null                                                       // a Delete may have no payload
             : JsonSerializer.Deserialize<JsonElement>(request.PayloadJson)   // text -> JSON element
     };
+    
+    /// For the staff list: which media item has an open request and in what state. Nothing else is passed on.
+    public static OpenMediaRequestDto ToOpenMediaRequestDto(ChangeRequest request) => new()
+    {
+        MediaId = request.TargetId!.Value,   // never null here: the guard only returns requests that point at an item
+        Status = request.Status.ToString()
+    };
 }

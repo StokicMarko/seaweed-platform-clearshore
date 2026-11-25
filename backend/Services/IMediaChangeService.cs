@@ -15,4 +15,7 @@ public interface IMediaChangeService
 
     /// Creates a pending Delete request.
     Task<ChangeRequest> SubmitDeleteAsync(int mediaId);
+    
+    /// The media items that have an open request (pending or returned), for the list in the dashboard.
+    Task<List<ChangeRequest>> GetOpenRequestsAsync();
 }
