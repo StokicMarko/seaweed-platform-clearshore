@@ -1,0 +1,332 @@
+@page "/media/{Id:int}/edit"
+@using ApiContracts.Media
+@using ApiContracts.Technology
+@using Dashboard.Components.Pages
+@using Dashboard.Components.Shared
+@using Dashboard.Models
+@using Dashboard.Services
+@using Dashboard.Services.Media
+@using Microsoft.AspNetCore.Components.Forms
+@inject IMediaReader MediaReader
+@inject ITechnologyService TechnologyService
+@inject IUploadRulesService UploadRulesService
+@implements IDisposable
+
+<PageTitle>Edit media</PageTitle>
+
+<main class="edit-media">
+    <header class="page-heading">
+        <p>CONTENT OPERATIONS</p>
+        <h1>Edit media</h1>
+        <a href="media">Back to Manage media</a>
+    </header>
+
+    @if (loading)
+    {
+        <p role="status">
+            Loading media and form options...
+        </p>
+    }
+
+    @if (loadingErrors.Count > 0)
+    {
+        <StatusMessage IsError="true"
+                       Title="The media details could not be loaded."
+                       Errors="@loadingErrors">
+            <p>
+                The fields remain disabled until the existing
+                media and form options load.
+            </p>
+        </StatusMessage>
+
+        <button type="button"
+                @onclick="LoadAsync"
+                disabled="@loading">
+            Try again
+        </button>
+    }
+
+    <section class="media-panel">
+        <h2>Media library entry</h2>
+
+        <p>
+            Edit the existing language versions and technologies.
+            A replacement file is optional.
+        </p>
+
+        <section class="current-file"
+                 aria-labelledby="current-file-heading">
+            <h3 id="current-file-heading">Current file</h3>
+
+            @if (media is not null)
+            {
+                <MediaFilePreview
+                    Url="@MediaReader.GetFileUrl(media)"
+                    ContentType="@media.ContentType"
+                    FileName="@media.FileName" />
+
+                <p>@media.FileName</p>
+
+                <p>
+                    Keep this file by leaving the replacement
+                    file selection empty.
+                </p>
+            }
+            else
+            {
+                <p>
+                    The current file preview will appear
+                    when the media details have loaded.
+                </p>
+            }
+        </section>
+
+        @if (errors.Count > 0)
+        {
+            <StatusMessage IsError="true"
+                           Title="Check the following fields:"
+                           Errors="@errors" />
+        }
+
+        @if (validationPassed)
+        {
+            <StatusMessage Title="The current changes pass validation.">
+                <p>
+                    No update request has been submitted.
+                    The published media remains unchanged.
+                </p>
+            </StatusMessage>
+        }
+
+        @* Use our validator instead of native required-field popups. *@
+        <form @onsubmit="ValidateChanges"
+              @onsubmit:preventDefault
+              @oninput="OnFormChanged"
+              @onchange="OnFormChanged"
+              novalidate>
+
+            <MediaForm @key="loadVersion"
+                       Data="@formData"
+                       Technologies="@technologies"
+                       Rules="@rules"
+                       Busy="@FormUnavailable"
+                       FileChanged="OnFileChanged" />
+
+            @if (selectedFile is not null)
+            {
+                <p role="status">
+                    Replacement selected: @selectedFile.Name.
+                </p>
+            }
+
+            <footer class="form-actions">
+                <button type="submit"
+                        disabled="@FormUnavailable">
+                    Check changes
+                </button>
+
+                <a href="media">
+                    Cancel and return to Manage media
+                </a>
+            </footer>
+        </form>
+
+        <StatusMessage Title="Update submission is unavailable.">
+            <p>
+                Checking changes validates the form only.
+                Changes are not saved or submitted for approval.
+            </p>
+        </StatusMessage>
+    </section>
+</main>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private readonly CancellationTokenSource lifetime = new();
+
+    private MediaDto? media;
+    private MediaFormData formData = new();
+
+    private List<TechnologyDto> technologies = new();
+    private List<MediaUploadRuleDto> rules = new();
+
+    private List<string> loadingErrors = new();
+    private List<string> errors = new();
+
+    private IBrowserFile? selectedFile;
+    private bool loading;
+    private bool validationPassed;
+    private int loadVersion;
+
+    private bool FormUnavailable =>
+        loading ||
+        media is null ||
+        loadingErrors.Count > 0;
+
+    protected override Task OnParametersSetAsync()
+    {
+        return LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        int version = ++loadVersion;
+        int requestedId = Id;
+
+        loading = true;
+        loadingErrors = new();
+        errors = new();
+        validationPassed = false;
+
+        // Clear previous values so failed navigation cannot show stale data.
+        media = null;
+        formData = new();
+        technologies = new();
+        rules = new();
+        selectedFile = null;
+
+        string operation = "media item";
+
+        try
+        {
+            MediaDto loadedMedia = await MediaReader.GetSingleAsync(
+                requestedId,
+                lifetime.Token);
+
+            operation = "technologies";
+
+            List<TechnologyDto> loadedTechnologies =
+                (await TechnologyService.GetManyAsync(lifetime.Token))
+                .Where(item => !string.IsNullOrWhiteSpace(item.Type))
+                .DistinctBy(item => item.Type)
+                .ToList();
+
+            operation = "upload settings";
+
+            List<MediaUploadRuleDto> loadedRules =
+                (await UploadRulesService.GetUploadRulesAsync(
+                    lifetime.Token))
+                .Where(rule =>
+                    rule.MaxBytes > 0 &&
+                    rule.AllowedExtensions.Count > 0)
+                .ToList();
+
+            if (version != loadVersion ||
+                lifetime.IsCancellationRequested)
+            {
+                return;
+            }
+
+            if (loadedTechnologies.Count == 0)
+            {
+                loadingErrors.Add("No technologies are available.");
+            }
+
+            if (loadedRules.Count == 0)
+            {
+                loadingErrors.Add("No upload rules are available.");
+            }
+
+            if (loadingErrors.Count > 0)
+            {
+                return;
+            }
+
+            // Reuse the shared form model with the item's current values.
+            formData = new MediaFormData
+            {
+                TitleEn = loadedMedia.Title.En,
+                TitleEs = loadedMedia.Title.Es,
+                TitleFr = loadedMedia.Title.Fr,
+
+                DescriptionEn = loadedMedia.Description?.En ?? "",
+                DescriptionEs = loadedMedia.Description?.Es ?? "",
+                DescriptionFr = loadedMedia.Description?.Fr ?? "",
+
+                TechnologyTypes = loadedMedia.Technologies
+                    .Select(item => item.Type)
+                    .ToHashSet()
+            };
+
+            technologies = loadedTechnologies;
+            rules = loadedRules;
+            media = loadedMedia;
+        }
+        catch (OperationCanceledException)
+            when (lifetime.IsCancellationRequested)
+        {
+            // Leaving the page cancels its requests.
+        }
+        catch (Exception ex) when (
+            ex is HttpRequestException or
+            System.Text.Json.JsonException or
+            InvalidOperationException or
+            OperationCanceledException)
+        {
+            if (version == loadVersion &&
+                !lifetime.IsCancellationRequested)
+            {
+                loadingErrors = new()
+                {
+                    $"Could not load the {operation}. " +
+                    "Check that WebApi, the Data Server and the " +
+                    "database are available, then select Try again."
+                };
+            }
+        }
+        finally
+        {
+            if (version == loadVersion)
+            {
+                loading = false;
+            }
+        }
+    }
+
+    private void ValidateChanges()
+    {
+        errors = new();
+        validationPassed = false;
+
+        if (FormUnavailable || lifetime.IsCancellationRequested)
+        {
+            return;
+        }
+
+        // No replacement means keep the existing file.
+        // Any supplied replacement still receives full file validation.
+        errors = formData.Validate(
+            selectedFile?.Name,
+            selectedFile?.Size ?? 0,
+            rules,
+            technologies.Select(item => item.Type),
+            requireFile: false);
+
+        validationPassed = errors.Count == 0;
+    }
+
+    private void OnFormChanged(ChangeEventArgs args)
+    {
+        ClearValidation();
+    }
+
+    private void OnFileChanged(IBrowserFile? file)
+    {
+        selectedFile = file;
+        ClearValidation();
+    }
+
+    private void ClearValidation()
+    {
+        errors.Clear();
+        validationPassed = false;
+    }
+
+    public void Dispose()
+    {
+        lifetime.Cancel();
+        lifetime.Dispose();
+    }
+}

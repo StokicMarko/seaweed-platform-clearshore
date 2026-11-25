@@ -1,0 +1,106 @@
+@using ApiContracts.ChangeRequests
+
+@if (Requests is null)
+{
+    @* Unknown status must not be treated as permission to edit. *@
+    <div>
+        <span role="status">Request status unavailable</span>
+
+        <div class="media-actions">
+            <span aria-disabled="true">Edit</span>
+            <span aria-hidden="true"> | </span>
+            <span aria-disabled="true">Delete</span>
+        </div>
+    </div>
+}
+else
+{
+    var openStatuses = GetOpenStatuses();
+
+    @if (openStatuses.Count > 0)
+    {
+        <div>
+            @foreach (string status in openStatuses)
+            {
+                <StatusBadge Status="@status" />
+            }
+
+            <p class="blocking-message">
+                An open change request blocks Edit and Delete.
+            </p>
+
+            <div class="media-actions">
+                <span aria-disabled="true">Edit</span>
+                <span aria-hidden="true"> | </span>
+                <span aria-disabled="true">Delete</span>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="media-actions">
+            <a href="@($"media/{MediaId}/edit")"
+               aria-label="@($"Edit {Title}")">
+                Edit
+            </a>
+
+            <span aria-hidden="true"> | </span>
+
+            <a href="@($"media/{MediaId}/delete")"
+               aria-label="@($"Delete {Title}")">
+                Delete
+            </a>
+        </div>
+    }
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public int MediaId { get; set; }
+
+    [Parameter, EditorRequired]
+    public string Title { get; set; } = "";
+
+    // Null means the request-status lookup has not succeeded.
+    // A non-null list must include both Pending and Returned requests.
+    [Parameter]
+    public IReadOnlyList<ChangeRequestDto>? Requests { get; set; }
+
+    private List<string> GetOpenStatuses()
+    {
+        return Requests!
+            .Where(request =>
+                request.TargetId == MediaId &&
+                string.Equals(
+                    request.TargetType,
+                    "Media",
+                    StringComparison.OrdinalIgnoreCase))
+            .Select(request => NormalizeOpenStatus(request.Status))
+            .Where(status => status is not null)
+            .Select(status => status!)
+            .Distinct()
+            .OrderBy(status => status)
+            .ToList();
+    }
+
+    private static string? NormalizeOpenStatus(string status)
+    {
+        if (string.Equals(
+                status,
+                "Pending",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            return "Pending";
+        }
+
+        if (string.Equals(
+                status,
+                "Returned",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            return "Returned";
+        }
+
+        return null;
+    }
+}

@@ -1,4 +1,7 @@
 @page "/media"
+@using ApiContracts.Media
+@using Dashboard.Components.Shared
+@using Dashboard.Services.Media
 @inject IMediaReader MediaReader
 
 <PageTitle>Media</PageTitle>
@@ -7,11 +10,14 @@
 
 @if (errorMessage is not null)
 {
-    <p>Could not load media: @errorMessage</p>
+    <StatusMessage IsError="true"
+                   Title="Could not load media.">
+        <p>@errorMessage</p>
+    </StatusMessage>
 }
 else if (media is null)
 {
-    <p>Loading...</p>
+    <p role="status">Loading...</p>
 }
 else if (media.Count == 0)
 {
@@ -22,28 +28,60 @@ else
     <table>
         <thead>
             <tr>
-                <th>Id</th>
-                <th>Technologies</th>
-                <th>Type</th>
-                <th>Title (EN)</th>
-                <th>Title (ES)</th>
-                <th>Title (FR)</th>
-                <th>File</th>
-                <th>Published</th>
+                <th scope="col">Id</th>
+                <th scope="col">Technologies</th>
+                <th scope="col">Type</th>
+                <th scope="col">Title (EN)</th>
+                <th scope="col">Title (ES)</th>
+                <th scope="col">Title (FR)</th>
+                <th scope="col">File</th>
+                <th scope="col">Published</th>
+                <th scope="col">Actions</th>
             </tr>
         </thead>
+
         <tbody>
             @foreach (MediaDto item in media)
             {
-                <tr>
+                <tr @key="item.Id">
                     <td>@item.Id</td>
-                    <td>@string.Join(", ", item.Technologies.Select(t => t.Type))</td>
+
+                    <td>
+                        @string.Join(
+                            ", ",
+                            item.Technologies.Select(t => t.Type))
+                    </td>
+
                     <td>@item.MediaType</td>
                     <td>@item.Title.En</td>
                     <td>@item.Title.Es</td>
                     <td>@item.Title.Fr</td>
-                    <td><a href="@MediaReader.GetFileUrl(item)" target="_blank">@item.FileName</a></td>
-                    <td>@item.PublishedAt.ToString("yyyy-MM-dd HH:mm")</td>
+
+                    <td>
+                        <a href="@MediaReader.GetFileUrl(item)"
+                           target="_blank"
+                           rel="noopener noreferrer">
+                            @item.FileName
+                        </a>
+                    </td>
+
+                    <td>
+                        @item.PublishedAt.ToString("yyyy-MM-dd HH:mm")
+                    </td>
+
+                    <td>
+                        <a href="@($"media/{item.Id}/edit")"
+                           aria-label="@($"Edit {item.Title.En}")">
+                            Edit
+                        </a>
+
+                        <span aria-hidden="true"> | </span>
+
+                        <a href="@($"media/{item.Id}/delete")"
+                           aria-label="@($"Delete {item.Title.En}")">
+                            Delete
+                        </a>
+                    </td>
                 </tr>
             }
         </tbody>
@@ -60,9 +98,12 @@ else
         {
             media = await MediaReader.GetManyAsync();
         }
-        catch (Exception e)
+        catch (Exception ex) when (
+            ex is HttpRequestException or
+            System.Text.Json.JsonException or
+            OperationCanceledException)
         {
-            errorMessage = e.Message;
+            errorMessage = ex.Message;
         }
     }
 }

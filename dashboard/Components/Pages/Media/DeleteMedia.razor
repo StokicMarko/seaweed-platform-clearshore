@@ -1,0 +1,170 @@
+@page "/media/{Id:int}/delete"
+@using ApiContracts.Media
+@using Dashboard.Components.Shared
+@using Dashboard.Services.Media
+@inject IMediaReader MediaReader
+@implements IDisposable
+
+<PageTitle>Delete media</PageTitle>
+
+<main class="delete-media">
+    <header>
+        <p>CONTENT OPERATIONS</p>
+        <h1>Delete media</h1>
+        <a href="media">Back to Manage media</a>
+    </header>
+
+    <section aria-labelledby="confirmation-heading">
+        <h2 id="confirmation-heading">Confirm deletion request</h2>
+
+        <p>
+            Deletion creates a pending change request.
+            The published media and its file remain available
+            until the Main Admin approves the request.
+        </p>
+
+        @if (loading)
+        {
+            <p role="status">Loading media...</p>
+        }
+
+        @if (errorMessage is not null)
+        {
+            <StatusMessage IsError="true"
+                           Title="The media details could not be loaded.">
+                <p>@errorMessage</p>
+            </StatusMessage>
+
+            <button type="button"
+                    @onclick="LoadAsync"
+                    disabled="@loading">
+                Try again
+            </button>
+        }
+
+        @if (media is not null)
+        {
+            <dl>
+                <dt>Id</dt>
+                <dd>@media.Id</dd>
+
+                <dt>Title (EN)</dt>
+                <dd>@media.Title.En</dd>
+
+                <dt>Title (ES)</dt>
+                <dd>@media.Title.Es</dd>
+
+                <dt>Title (FR)</dt>
+                <dd>@media.Title.Fr</dd>
+
+                <dt>Type</dt>
+                <dd>@media.MediaType</dd>
+
+                <dt>Technologies</dt>
+                <dd>
+                    @string.Join(
+                        ", ",
+                        media.Technologies.Select(item => item.Type))
+                </dd>
+
+                <dt>File</dt>
+                <dd>@media.FileName</dd>
+            </dl>
+        }
+
+        <StatusMessage Title="Deletion submission is unavailable.">
+            <p>
+                No deletion request has been submitted.
+                You can cancel and return to Manage media.
+            </p>
+        </StatusMessage>
+
+        <footer>
+            @* Enabled when the deletion-request API is integrated. *@
+            <button type="button"
+                    disabled
+                    aria-describedby="submission-unavailable">
+                Submit deletion request
+            </button>
+
+            <a href="media">Cancel</a>
+
+            <p id="submission-unavailable">
+                Submission will be available when the
+                deletion-request API is connected.
+            </p>
+        </footer>
+    </section>
+</main>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private readonly CancellationTokenSource lifetime = new();
+
+    private MediaDto? media;
+    private string? errorMessage;
+    private bool loading;
+    private int loadVersion;
+
+    protected override Task OnParametersSetAsync()
+    {
+        return LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        int version = ++loadVersion;
+        int requestedId = Id;
+
+        loading = true;
+        media = null;
+        errorMessage = null;
+
+        try
+        {
+            MediaDto loadedMedia = await MediaReader.GetSingleAsync(
+                requestedId,
+                lifetime.Token);
+
+            if (version == loadVersion &&
+                !lifetime.IsCancellationRequested)
+            {
+                media = loadedMedia;
+            }
+        }
+        catch (OperationCanceledException)
+            when (lifetime.IsCancellationRequested)
+        {
+            // Leaving the page cancels its request.
+        }
+        catch (Exception ex) when (
+            ex is HttpRequestException or
+            System.Text.Json.JsonException or
+            InvalidOperationException or
+            OperationCanceledException)
+        {
+            if (version == loadVersion &&
+                !lifetime.IsCancellationRequested)
+            {
+                errorMessage =
+                    "Check that WebApi, the Data Server and the " +
+                    "database are available, then select Try again.";
+            }
+        }
+        finally
+        {
+            if (version == loadVersion)
+            {
+                loading = false;
+            }
+        }
+    }
+
+    public void Dispose()
+    {
+        lifetime.Cancel();
+        lifetime.Dispose();
+    }
+}

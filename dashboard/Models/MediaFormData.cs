@@ -18,42 +18,25 @@ public class MediaFormData
         string? fileName,
         long fileSize,
         IReadOnlyList<MediaUploadRuleDto> rules,
-        IEnumerable<string> knownTypes)
+        IEnumerable<string> knownTypes,
+        bool requireFile = true)
     {
         List<string> errors = new();
 
-        // Check the file before uploading.
+        // Add requires a file. Edit may retain the existing file.
         if (string.IsNullOrWhiteSpace(fileName))
         {
-            errors.Add("Choose a picture, video or 3D model.");
+            if (requireFile)
+            {
+                errors.Add("Choose a picture, video or 3D model.");
+            }
         }
         else
         {
-            MediaUploadRuleDto? rule = FindRule(fileName, rules);
-
-            if (fileSize <= 0)
-            {
-                errors.Add("The selected file is empty.");
-            }
-
-            if (rules.Count == 0)
-            {
-                errors.Add(
-                    "Upload settings are unavailable. Load them before submitting.");
-            }
-            else if (rule is null)
-            {
-                errors.Add(
-                    "Unsupported file format. Choose one of the formats listed above the file picker.");
-            }
-            else if (fileSize > rule.MaxBytes)
-            {
-                errors.Add(
-                    $"The selected file is too large. The limit for {rule.MediaType} is {rule.MaxBytes / 1048576d:0.##} MiB.");
-            }
+            ValidateFile(fileName, fileSize, rules, errors);
         }
 
-        // At least one technology must be selected.
+        // At least one available technology must be selected.
         if (TechnologyTypes.Count == 0)
         {
             errors.Add("Select at least one technology.");
@@ -64,19 +47,68 @@ public class MediaFormData
         if (TechnologyTypes.Any(type => !known.Contains(type)))
         {
             errors.Add(
-                "One or more technologies are no longer available. Reload the options and select again.");
+                "One or more technologies are no longer available. " +
+                "Reload the options and select again.");
         }
 
-        // All titles and descriptions are required.
         Required(TitleEn, "English title", errors);
         Required(TitleEs, "Spanish title", errors);
         Required(TitleFr, "French title", errors);
 
-        Required(DescriptionEn, "English description", errors);
-        Required(DescriptionEs, "Spanish description", errors);
-        Required(DescriptionFr, "French description", errors);
+        // Descriptions are optional, but must be complete if supplied.
+        bool hasDescription =
+            !string.IsNullOrWhiteSpace(DescriptionEn) ||
+            !string.IsNullOrWhiteSpace(DescriptionEs) ||
+            !string.IsNullOrWhiteSpace(DescriptionFr);
+
+        if (hasDescription)
+        {
+            Required(DescriptionEn, "English description", errors);
+            Required(DescriptionEs, "Spanish description", errors);
+            Required(DescriptionFr, "French description", errors);
+        }
 
         return errors;
+    }
+
+    private static void ValidateFile(
+        string fileName,
+        long fileSize,
+        IReadOnlyList<MediaUploadRuleDto> rules,
+        List<string> errors)
+    {
+        if (fileSize <= 0)
+        {
+            errors.Add("The selected file is empty.");
+        }
+
+        if (rules.Count == 0)
+        {
+            errors.Add(
+                "Upload settings are unavailable. " +
+                "Load them before submitting.");
+
+            return;
+        }
+
+        MediaUploadRuleDto? rule = FindRule(fileName, rules);
+
+        if (rule is null)
+        {
+            errors.Add(
+                "Unsupported file format. Choose one of the formats " +
+                "listed above the file picker.");
+
+            return;
+        }
+
+        if (fileSize > rule.MaxBytes)
+        {
+            errors.Add(
+                $"The selected file is too large. " +
+                $"The limit for {rule.MediaType} is " +
+                $"{rule.MaxBytes / 1048576d:0.##} MiB.");
+        }
     }
 
     public static MediaUploadRuleDto? FindRule(
@@ -95,7 +127,7 @@ public class MediaFormData
     }
 
     private static void Required(
-        string value,
+        string? value,
         string field,
         List<string> errors)
     {

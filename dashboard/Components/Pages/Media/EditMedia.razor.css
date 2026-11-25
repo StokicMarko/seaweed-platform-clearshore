@@ -1,0 +1,75 @@
+/* Keep the Edit page consistent with the media area. */
+.edit-media {
+    padding: 24px;
+    background: #1b3e78;
+    color: #ffffff;
+    min-height: 100%;
+}
+
+.page-heading {
+    margin-bottom: 28px;
+}
+
+.page-heading p {
+    margin: 0 0 8px;
+    font-size: 0.8rem;
+    letter-spacing: 0.15em;
+}
+
+.page-heading h1 {
+    margin: 0 0 16px;
+}
+
+.edit-media a {
+    color: #ffffff;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.edit-media a:focus-visible,
+.edit-media button:focus-visible {
+    outline: 3px solid #a9d9ff;
+    outline-offset: 4px;
+}
+
+.media-panel {
+    width: 100%;
+    min-width: 0;
+}
+
+.media-panel h2 {
+    margin-top: 0;
+}
+
+.current-file {
+    margin: 28px 0 16px;
+}
+
+/* The preview is rendered by the shared child component. */
+.current-file ::deep .media-preview {
+    width: 100%;
+    max-width: 800px;
+    padding: 12px;
+    box-sizing: border-box;
+    border: 1px solid #7290b8;
+    border-radius: 12px;
+    background: #122b50;
+}
+
+.current-file ::deep img,
+.current-file ::deep video {
+    display: block;
+    width: 100%;
+    max-height: 450px;
+    object-fit: contain;
+}
+
+.form-actions {
+    margin-top: 24px;
+}
+
+@media (max-width: 600px) {
+    .edit-media {
+        padding: 16px;
+    }
+}
