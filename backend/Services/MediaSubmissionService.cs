@@ -19,7 +19,7 @@ public class MediaSubmissionService(
         MediaType? mediaType = fileValidator.Check(command.FileName, command.Length, validation);
         LocalizedTextValidator.Required("Title", command.Title, validation);
         LocalizedTextValidator.OptionalAllOrNone("Description", command.Description, validation);
-        await CheckTechnologiesAsync(command.TechnologyTypes, validation);
+        await MediaSubmissionRules.CheckTechnologiesAsync(technologyRepository, command.TechnologyTypes, validation);
 
         validation.ThrowIfAny();
 
@@ -32,7 +32,7 @@ public class MediaSubmissionService(
             MediaType = mediaType!.Value, // set whenever no error was reported
             TechnologyTypes = command.TechnologyTypes.Distinct().ToList(),
             Title = command.Title!, // checked by the validator above
-            Description = NullIfEmpty(command.Description),
+            Description = MediaSubmissionRules.NullIfEmpty(command.Description),
             StoredFileName = storedFileName,
             OriginalFileName = command.FileName,
             ContentType = string.IsNullOrWhiteSpace(command.ContentType)
@@ -40,34 +40,6 @@ public class MediaSubmissionService(
                 : command.ContentType
         };
 
-        return await submitter.SubmitAsync(ChangeTarget.Media, ChangeType.Create, submission, [storedFileName]);
+        return await submitter.SubmitAsync(ChangeTarget.Media, ChangeType.Create, null, submission, [storedFileName]);
     }
-
-    // At least one technology, and every type must exist.
-    private async Task CheckTechnologiesAsync(List<string> types, ValidationCollector validation)
-    {
-        if (types.Count == 0)
-        {
-            validation.Add("Choose at least one technology.");
-            return;
-        }
-
-        List<Technology> technologies = await technologyRepository.GetManyAsync();
-        HashSet<string> known = technologies.Select(technology => technology.Type).ToHashSet();
-
-        foreach (string type in types.Where(type => !known.Contains(type)).Distinct())
-        {
-            validation.Add($"Unknown technology '{type}'.");
-        }
-    }
-    
-
-    // Three empty texts mean "no description".
-    private static LocalizedText? NullIfEmpty(LocalizedText? description) =>
-        description is null ||
-        (string.IsNullOrWhiteSpace(description.En) &&
-         string.IsNullOrWhiteSpace(description.Es) &&
-         string.IsNullOrWhiteSpace(description.Fr))
-            ? null
-            : description;
 }
