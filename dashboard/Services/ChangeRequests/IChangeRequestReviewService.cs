@@ -22,4 +22,7 @@ public interface IChangeRequestReviewService
     Task<ChangeRequestDto> ReturnAsync(
         int id,
         CancellationToken cancellationToken = default);
+    
+    /// The address of an uploaded file of a request, for the preview in the browser.
+    string GetFileUrl(int id, string storedFileName);
 }

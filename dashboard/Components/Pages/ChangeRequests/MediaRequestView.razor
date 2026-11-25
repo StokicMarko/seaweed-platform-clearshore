@@ -1,6 +1,7 @@
 @using System.Text.Json
 @using ApiContracts.ChangeRequests
-@using Dashboard.Components.Shared
+@using Dashboard.Services.ChangeRequests
+@inject IChangeRequestReviewService ReviewService
 
 <section aria-labelledby="media-request-heading">
     <h2 id="media-request-heading">Proposed media change</h2>
@@ -81,7 +82,13 @@
                 <dd>@payload.ContentType</dd>
             </dl>
 
-            <p>Uploaded-file preview is not available yet.</p>
+            @if (!string.IsNullOrEmpty(payload.StoredFileName))
+            {
+                <MediaFilePreview
+                    Url="@ReviewService.GetFileUrl(Request.Id, payload.StoredFileName)"
+                    ContentType="@(payload.ContentType ?? "")"
+                    FileName="@(payload.OriginalFileName ?? "")" />
+            }
         }
     }
 </section>
