@@ -31,6 +31,8 @@ builder.Services.AddScoped<IMediaFileValidator, MediaFileValidator>();
 builder.Services.AddScoped<ICurrentUser, ConfiguredCurrentUser>();      //CHANGE WITH LOGIN  
 builder.Services.AddScoped<IMediaSubmissionService, MediaSubmissionService>();
 builder.Services.AddScoped<IChangeRequestSubmitter, ChangeRequestSubmitter>();
+builder.Services.AddScoped<IOpenRequestGuard, OpenRequestGuard>();
+builder.Services.AddScoped<IMediaChangeService, MediaChangeService>();
 
 // One line per target. 
 builder.Services.AddScoped<IChangeRequestApplier, MediaChangeRequestApplier>();

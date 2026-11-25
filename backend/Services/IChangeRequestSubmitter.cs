@@ -11,6 +11,7 @@ public interface IChangeRequestSubmitter
     Task<ChangeRequest> SubmitAsync<TPayload>(
         ChangeTarget target,
         ChangeType type,
-        TPayload payload,
+        int? targetId,
+        TPayload? payload,
         IReadOnlyCollection<string> storedFileNames);
 }

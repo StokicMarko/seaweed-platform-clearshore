@@ -1,5 +1,6 @@
 using Dashboard.Components;
 using Dashboard.Services;
+using Dashboard.Services.Media;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,7 +8,7 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 // Dashboard helper for media requests.
-builder.Services.AddHttpClient<IMediaService, HttpMediaService>(
+builder.Services.AddHttpClient<HttpMediaService>(
     client =>
     {
         client.Timeout = TimeSpan.FromMinutes(15);
@@ -16,8 +17,15 @@ builder.Services.AddHttpClient<IMediaService, HttpMediaService>(
             builder.Configuration["BackendUrl"]!);
     });
 
+builder.Services.AddTransient<IMediaReader>(services =>
+    services.GetRequiredService<HttpMediaService>());
+builder.Services.AddTransient<IUploadRulesService>(services =>
+    services.GetRequiredService<HttpMediaService>());
+builder.Services.AddTransient<IMediaWriter>(services =>
+    services.GetRequiredService<HttpMediaService>());
+
 // Dashboard helper for technology choices.
-builder.Services.AddHttpClient<HttpTechnologyService>(
+builder.Services.AddHttpClient<ITechnologyService, HttpTechnologyService>(
     client =>
     {
         client.BaseAddress = new Uri(

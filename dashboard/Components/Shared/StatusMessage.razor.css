@@ -1,0 +1,41 @@
+.status-message {
+    box-sizing: border-box;
+    width: calc(100% - 64px);
+    max-width: 960px;
+    margin: 24px 32px;
+    padding: 16px 20px;
+    border: 1px solid;
+    border-radius: 8px;
+}
+
+.status-message.error {
+    border-color: #e7b5ad;
+    background: #fff0ed;
+    color: #8b251c;
+}
+
+.status-message.info {
+    border-color: #adccef;
+    background: #e9f3ff;
+    color: #173b70;
+}
+
+.status-message ul {
+    margin: 8px 0 0;
+    padding-left: 22px;
+}
+
+.status-message li {
+    margin-bottom: 5px;
+}
+
+.status-message ::deep p {
+    margin: 8px 0 0;
+}
+
+@media (max-width: 850px) {
+    .status-message {
+        width: calc(100% - 40px);
+        margin: 20px;
+    }
+}

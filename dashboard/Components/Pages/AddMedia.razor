@@ -6,9 +6,11 @@
 @using ApiContracts.Technology
 @using Dashboard.Models
 @using Dashboard.Services
+@using Dashboard.Services.Media
 @using Microsoft.AspNetCore.Components.Forms
-@inject IMediaService MediaService
-@inject HttpTechnologyService TechnologyService
+@inject IUploadRulesService UploadRulesService
+@inject IMediaWriter MediaWriter
+@inject ITechnologyService TechnologyService
 @implements IDisposable
 
 <PageTitle>Add media</PageTitle>
@@ -36,32 +38,20 @@
 
     @if (errors.Count > 0)
     {
-        <div class="validation-banner" role="alert">
-            <strong>
-                The submission could not be completed:
-            </strong>
-
-            <ul>
-                @foreach (var error in errors)
-                {
-                    <li>@error</li>
-                }
-            </ul>
-        </div>
+        <StatusMessage IsError="true"
+                       Title="The submission could not be completed:"
+                       Errors="errors" />
     }
 
     @if (savedRequest is not null)
     {
-        <div class="validation-notice" role="status">
-            <strong>
-                Submitted for approval — request #@savedRequest.Id
-            </strong>
-
+        <StatusMessage Title="@($"Submitted for approval — request #{savedRequest.Id}")">
             <p>
-                Status: Pending. This item will appear in the media
-                list only after Main Admin approval.
+                Status: <StatusBadge Status="Pending" />
+                This item will appear in the media list only after
+                Main Admin approval.
             </p>
-        </div>
+        </StatusMessage>
     }
 
     <section class="media-panel">
@@ -212,7 +202,7 @@
             try
             {
                 rules =
-                    (await MediaService.GetUploadRulesAsync(
+                    (await UploadRulesService.GetUploadRulesAsync(
                         lifetime.Token))
                     .Where(rule =>
                         rule.MaxBytes > 0 &&
@@ -285,7 +275,7 @@
         try
         {
             MediaSubmissionResult result =
-                await MediaService.AddMediaAsync(
+                await MediaWriter.AddMediaAsync(
                     formData,
                     selectedFile,
                     rule.MaxBytes,

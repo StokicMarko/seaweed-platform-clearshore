@@ -40,7 +40,7 @@
             <InputFile id="media-file"
                        @ref="fileInput"
                        OnChange="OnFileSelected"
-                       accept=".jpg,.jpeg,.png,.webp,.mp4,.glb"
+                       accept="@AcceptedExtensions"
                        disabled="@Busy"
                        aria-describedby="upload-rules" />
 
@@ -110,86 +110,17 @@
     @* Each language occupies one full-width row. *@
     <div class="language-sections">
 
-        <fieldset class="language-section">
-            <legend>English</legend>
+        <LanguageSection Legend="English" Code="en"
+                         @bind-Title="Data.TitleEn"
+                         @bind-Description="Data.DescriptionEn" />
 
-            <div class="field">
-                <label for="title-en">
-                    Title (required)
-                </label>
+        <LanguageSection Legend="Español" Code="es"
+                         @bind-Title="Data.TitleEs"
+                         @bind-Description="Data.DescriptionEs" />
 
-                <input id="title-en"
-                       @bind="Data.TitleEn"
-                       @bind:event="oninput"
-                       required />
-            </div>
-
-            <div class="field">
-                <label for="description-en">
-                    Description (required)
-                </label>
-
-                <textarea id="description-en"
-                          rows="5"
-                          @bind="Data.DescriptionEn"
-                          @bind:event="oninput"
-                          required></textarea>
-            </div>
-        </fieldset>
-
-        <fieldset class="language-section">
-            <legend>Español</legend>
-
-            <div class="field">
-                <label for="title-es">
-                    Title (required)
-                </label>
-
-                <input id="title-es"
-                       @bind="Data.TitleEs"
-                       @bind:event="oninput"
-                       required />
-            </div>
-
-            <div class="field">
-                <label for="description-es">
-                    Description (required)
-                </label>
-
-                <textarea id="description-es"
-                          rows="5"
-                          @bind="Data.DescriptionEs"
-                          @bind:event="oninput"
-                          required></textarea>
-            </div>
-        </fieldset>
-
-        <fieldset class="language-section">
-            <legend>Français</legend>
-
-            <div class="field">
-                <label for="title-fr">
-                    Title (required)
-                </label>
-
-                <input id="title-fr"
-                       @bind="Data.TitleFr"
-                       @bind:event="oninput"
-                       required />
-            </div>
-
-            <div class="field">
-                <label for="description-fr">
-                    Description (required)
-                </label>
-
-                <textarea id="description-fr"
-                          rows="5"
-                          @bind="Data.DescriptionFr"
-                          @bind:event="oninput"
-                          required></textarea>
-            </div>
-        </fieldset>
+        <LanguageSection Legend="Français" Code="fr"
+                         @bind-Title="Data.TitleFr"
+                         @bind-Description="Data.DescriptionFr" />
 
     </div>
 

@@ -27,4 +27,8 @@ public interface MediaRepository extends JpaRepository<MediaItem, Integer> {
     @Override
     @EntityGraph(attributePaths = "technologies")
     Optional<MediaItem> findById(Integer id);
+
+    @EntityGraph(attributePaths = "technologies")
+    @Query("select m from MediaItem m where m.file.storedFileName = :storedFileName")
+    Optional<MediaItem> findByStoredFileName(@Param("storedFileName") String storedFileName);
 }

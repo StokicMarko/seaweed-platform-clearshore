@@ -18,6 +18,7 @@ public final class MediaMapper {
                 .setMediaType(toProto(mediaItem.getMediaType()))
                 .setTitle(CommonMapper.toLocalizedText(mediaItem.getTitleEn(), mediaItem.getTitleEs(), mediaItem.getTitleFr()))
                 .setOriginalFileName(mediaItem.getOriginalFileName())
+                .setStoredFileName(mediaItem.getStoredFileName())
                 .setContentType(mediaItem.getContentType())
                 .setPublishedAt(CommonMapper.toTimestamp(mediaItem.getPublishedAt()))
                 .setUpdatedAt(CommonMapper.toTimestamp(mediaItem.getUpdatedAt()));
@@ -43,6 +44,15 @@ public final class MediaMapper {
             case IMAGE -> MediaProto.MediaType.MEDIA_TYPE_IMAGE;
             case VIDEO -> MediaProto.MediaType.MEDIA_TYPE_VIDEO;
             case MODEL_3D -> MediaProto.MediaType.MEDIA_TYPE_MODEL_3D;
+        };
+    }
+
+    public static MediaType toEntity(MediaProto.MediaType type) {
+        return switch (type) {
+            case MEDIA_TYPE_IMAGE -> MediaType.IMAGE;
+            case MEDIA_TYPE_VIDEO -> MediaType.VIDEO;
+            case MEDIA_TYPE_MODEL_3D -> MediaType.MODEL_3D;
+            default -> throw new IllegalArgumentException("Unknown media type: " + type);
         };
     }
 }
