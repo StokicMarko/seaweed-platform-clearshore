@@ -86,6 +86,48 @@ public class HttpMediaService(HttpClient http)
             multipart,
             cancellationToken);
 
+        return await ReadSubmissionAsync(response, cancellationToken);
+    }
+
+    public async Task<MediaSubmissionResult> UpdateMediaAsync(
+        int id,
+        MediaFormData form,
+        IBrowserFile? file,
+        long maximumFileBytes,
+        CancellationToken cancellationToken = default)
+    {
+        // No file means "keep the current file": the form is sent without a File part.
+        await using Stream? stream = file?.OpenReadStream(
+            maximumFileBytes,
+            cancellationToken);
+
+        using MultipartFormDataContent multipart =
+            MediaRequestBuilder.Build(form, file, stream);
+
+        using HttpResponseMessage response = await http.PutAsync(
+            $"api/media/{id}",
+            multipart,
+            cancellationToken);
+
+        return await ReadSubmissionAsync(response, cancellationToken);
+    }
+
+    public async Task<MediaSubmissionResult> RequestDeleteAsync(
+        int id,
+        CancellationToken cancellationToken = default)
+    {
+        using HttpResponseMessage response = await http.DeleteAsync(
+            $"api/media/{id}",
+            cancellationToken);
+
+        return await ReadSubmissionAsync(response, cancellationToken);
+    }
+
+    // The one place that reads the answer of every submission (add, update, delete).
+    private static async Task<MediaSubmissionResult> ReadSubmissionAsync(
+        HttpResponseMessage response,
+        CancellationToken cancellationToken)
+    {
         // Only confirm submission when the API returns a pending request.
         if (response.StatusCode == HttpStatusCode.Accepted)
         {
