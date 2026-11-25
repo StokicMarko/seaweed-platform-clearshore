@@ -1,8 +1,10 @@
 @page "/media/{Id:int}/delete"
+@using ApiContracts.ChangeRequests
 @using ApiContracts.Media
 @using Dashboard.Components.Shared
 @using Dashboard.Services.Media
 @inject IMediaReader MediaReader
+@inject IMediaWriter MediaWriter
 @implements IDisposable
 
 <PageTitle>Delete media</PageTitle>
@@ -72,27 +74,32 @@
             </dl>
         }
 
-        <StatusMessage Title="Deletion submission is unavailable.">
-            <p>
-                No deletion request has been submitted.
-                You can cancel and return to Manage media.
-            </p>
-        </StatusMessage>
+        @if (errors.Count > 0)
+        {
+            <StatusMessage IsError="true"
+                           Title="The deletion request could not be sent:"
+                           Errors="@errors" />
+        }
+
+        @if (savedRequest is not null)
+        {
+            <StatusMessage Title="@($"Deletion submitted for approval — request #{savedRequest.Id}")">
+                <p>
+                    Status: <StatusBadge Status="Pending" />
+                    The media stays published until the Main Admin approves this request.
+                </p>
+                <p><a href="media">Back to Manage media</a></p>
+            </StatusMessage>
+        }
 
         <footer>
-            @* Enabled when the deletion-request API is integrated. *@
             <button type="button"
-                    disabled
-                    aria-describedby="submission-unavailable">
-                Submit deletion request
+                    @onclick="SubmitAsync"
+                    disabled="@(loading || media is null || submitting || savedRequest is not null)">
+                @(submitting ? "Submitting..." : "Submit deletion request")
             </button>
 
             <a href="media">Cancel</a>
-
-            <p id="submission-unavailable">
-                Submission will be available when the
-                deletion-request API is connected.
-            </p>
         </footer>
     </section>
 </main>
@@ -105,7 +112,10 @@
 
     private MediaDto? media;
     private string? errorMessage;
+    private ChangeRequestDto? savedRequest;
+    private List<string> errors = new();
     private bool loading;
+    private bool submitting;
     private int loadVersion;
 
     protected override Task OnParametersSetAsync()
@@ -121,6 +131,8 @@
         loading = true;
         media = null;
         errorMessage = null;
+        savedRequest = null;
+        errors = new();
 
         try
         {
@@ -159,6 +171,49 @@
             {
                 loading = false;
             }
+        }
+    }
+
+    private async Task SubmitAsync()
+    {
+        if (media is null ||
+            submitting ||
+            savedRequest is not null ||
+            lifetime.IsCancellationRequested)
+        {
+            return;
+        }
+
+        errors = new();
+        submitting = true;
+
+        try
+        {
+            MediaSubmissionResult result = await MediaWriter.RequestDeleteAsync(
+                Id,
+                lifetime.Token);
+
+            if (result.Request is not null)
+            {
+                savedRequest = result.Request;
+            }
+            else
+            {
+                errors = result.Errors;   // includes "already has an open change request" (409)
+            }
+        }
+        catch (Exception ex) when (
+            ex is HttpRequestException or
+            TaskCanceledException)
+        {
+            if (!lifetime.IsCancellationRequested)
+            {
+                errors = new() { "The request could not be sent. Try again." };
+            }
+        }
+        finally
+        {
+            submitting = false;
         }
     }
 
