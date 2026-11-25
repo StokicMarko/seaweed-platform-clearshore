@@ -11,7 +11,11 @@ public static class ApiErrorReader
     {
         List<string> errors = new();
 
-        if (response.StatusCode == HttpStatusCode.BadRequest)
+        // 400 carries the field errors; 409 (open request), 403 and 404 carry the reason in the title.
+        if (response.StatusCode is HttpStatusCode.BadRequest
+            or HttpStatusCode.Conflict
+            or HttpStatusCode.Forbidden
+            or HttpStatusCode.NotFound)
         {
             try
             {

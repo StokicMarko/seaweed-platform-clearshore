@@ -8,24 +8,30 @@ public static class MediaRequestBuilder
 {
     public static MultipartFormDataContent Build(
         MediaFormData form,
-        IBrowserFile file,
-        Stream stream)
+        IBrowserFile? file, //optional, Edit may keep the current file
+        Stream? stream)
     {
-        MultipartFormDataContent multipart = new();
-        StreamContent fileContent = new(stream);
+        MultipartFormDataContent multipart = new(); //several parts in one http
+        
+        // Edit may keep the current file: then no File part is sent at all.
+        if (file is not null && stream is not null)
+        {
+            StreamContent fileContent = new(stream);
 
-        fileContent.Headers.ContentType =
-            MediaTypeHeaderValue.TryParse(
-                file.ContentType,
-                out var parsedContentType)
-                ? parsedContentType
-                : new MediaTypeHeaderValue(
-                    "application/octet-stream");
+            fileContent.Headers.ContentType =
+                MediaTypeHeaderValue.TryParse(
+                    file.ContentType,
+                    out var parsedContentType)
+                    ? parsedContentType
+                    : new MediaTypeHeaderValue(
+                        "application/octet-stream");
 
-        multipart.Add(
-            fileContent,
-            "File",
-            Path.GetFileName(file.Name));
+            multipart.Add(
+                fileContent,
+                "File",
+                Path.GetFileName(file.Name));
+        }
+        
 
         foreach (string type in form.TechnologyTypes)
         {
