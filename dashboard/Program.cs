@@ -1,5 +1,6 @@
 using Dashboard.Components;
 using Dashboard.Services;
+using Dashboard.Services.ChangeRequests;
 using Dashboard.Services.Media;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,13 +20,27 @@ builder.Services.AddHttpClient<HttpMediaService>(
 
 builder.Services.AddTransient<IMediaReader>(services =>
     services.GetRequiredService<HttpMediaService>());
+
 builder.Services.AddTransient<IUploadRulesService>(services =>
     services.GetRequiredService<HttpMediaService>());
+
 builder.Services.AddTransient<IMediaWriter>(services =>
     services.GetRequiredService<HttpMediaService>());
 
 // Dashboard helper for technology choices.
-builder.Services.AddHttpClient<ITechnologyService, HttpTechnologyService>(
+builder.Services.AddHttpClient<
+    ITechnologyService,
+    HttpTechnologyService>(
+    client =>
+    {
+        client.BaseAddress = new Uri(
+            builder.Configuration["BackendUrl"]!);
+    });
+
+// Dashboard helper for Main Admin review requests.
+builder.Services.AddHttpClient<
+    IChangeRequestReviewService,
+    HttpChangeRequestReviewService>(
     client =>
     {
         client.BaseAddress = new Uri(

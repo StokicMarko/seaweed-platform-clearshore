@@ -1,0 +1,170 @@
+@page "/change-requests"
+@using ApiContracts.ChangeRequests
+@using Dashboard.Components.Shared
+@using Dashboard.Services.ChangeRequests
+@inject IChangeRequestReviewService ReviewService
+@implements IDisposable
+
+<PageTitle>Pending requests</PageTitle>
+
+<main class="pending-requests">
+    <header>
+        <p class="eyebrow">CONTENT OPERATIONS</p>
+        <h1>Pending requests</h1>
+        <p>Change requests waiting for Main Admin review.</p>
+
+        <button type="button"
+                @onclick="LoadAsync"
+                disabled="@loading">
+            @(loading ? "Loading..." : "Refresh")
+        </button>
+    </header>
+
+    @if (loading)
+    {
+        <p role="status" aria-live="polite">
+            Loading pending requests...
+        </p>
+    }
+    else if (errorMessage is not null)
+    {
+        <StatusMessage IsError="true"
+                       Title="Could not load pending requests.">
+            <p>@errorMessage</p>
+        </StatusMessage>
+    }
+    else if (requests is not null && requests.Count == 0)
+    {
+        <StatusMessage Title="No pending requests.">
+            <p>There are no change requests waiting for review.</p>
+        </StatusMessage>
+    }
+    else if (requests is not null)
+    {
+        <div class="table-container"
+             role="region"
+             aria-label="Pending requests table"
+             tabindex="0">
+            <table>
+                <caption>Change requests waiting for review</caption>
+
+                <thead>
+                    <tr>
+                        <th scope="col">Id</th>
+                        <th scope="col">Target type</th>
+                        <th scope="col">Type</th>
+                        <th scope="col">Target id</th>
+                        <th scope="col">Requested by</th>
+                        <th scope="col">Created at</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Details</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (ChangeRequestDto request in requests)
+                    {
+                        <tr @key="request.Id">
+                            <th scope="row">@request.Id</th>
+                            <td>@request.TargetType</td>
+                            <td>@request.Type</td>
+                            <td>@(request.TargetId?.ToString() ?? "—")</td>
+                            <td>@request.RequestedBy</td>
+
+                            <td>
+                                @request.CreatedAt.ToString(
+                                    "yyyy-MM-dd HH:mm zzz")
+                            </td>
+
+                            <td>
+                                <StatusBadge Status="@request.Status" />
+                            </td>
+
+                            <td>
+                                <a href="@($"change-requests/{request.Id}")"
+                                   aria-label="@($"View request {request.Id}")">
+                                    Details
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</main>
+
+@code {
+    private readonly CancellationTokenSource lifetime = new();
+
+    private List<ChangeRequestDto>? requests;
+    private string? errorMessage;
+    private bool loading;
+
+    protected override Task OnInitializedAsync()
+    {
+        return LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        if (loading || lifetime.IsCancellationRequested)
+        {
+            return;
+        }
+
+        loading = true;
+        errorMessage = null;
+        requests = null;
+
+        try
+        {
+            List<ChangeRequestDto> loadedRequests =
+                await ReviewService.GetPendingAsync(lifetime.Token);
+
+            if (!lifetime.IsCancellationRequested)
+            {
+                requests = loadedRequests
+                    .OrderByDescending(request => request.CreatedAt)
+                    .ThenByDescending(request => request.Id)
+                    .ToList();
+            }
+        }
+        catch (OperationCanceledException)
+            when (lifetime.IsCancellationRequested)
+        {
+        }
+        catch (HttpRequestException ex)
+        {
+            if (!lifetime.IsCancellationRequested)
+            {
+                errorMessage = ex.StatusCode is not null
+                    ? ex.Message
+                    : "Could not connect to WebApi. " +
+                      "Check the connection and select Refresh.";
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            errorMessage =
+                "Loading pending requests timed out. Select Refresh.";
+        }
+        catch (Exception ex) when (
+            ex is System.Text.Json.JsonException or
+            InvalidOperationException)
+        {
+            errorMessage =
+                "WebApi returned an invalid pending-requests response.";
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    public void Dispose()
+    {
+        lifetime.Cancel();
+        lifetime.Dispose();
+    }
+}
