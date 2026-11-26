@@ -1,0 +1,43 @@
+﻿@using Dashboard.Components.Pages
+@inject IMediaReader MediaReader
+
+<section class="current-media" aria-label="@Heading">
+    <h3>@Heading</h3>
+
+    @if (ErrorMessage is not null)
+    {
+        <p role="status">@ErrorMessage</p>
+    }
+    else if (Media is null)
+    {
+        <p role="status">Loading the published item...</p>
+    }
+    else
+    {
+        <dl>
+            <dt>Title (EN)</dt>
+            <dd>@Media.Title.En</dd>
+
+            <dt>Technologies</dt>
+            <dd>@string.Join(", ", Media.Technologies.Select(item => item.Type))</dd>
+
+            <dt>File</dt>
+            <dd>@Media.FileName</dd>
+        </dl>
+
+        <MediaFilePreview Url="@MediaReader.GetFileUrl(Media)"
+                          ContentType="@Media.ContentType"
+                          FileName="@Media.FileName" />
+    }
+</section>
+
+@code {
+    [Parameter]
+    public string Heading { get; set; } = "Published item";
+
+    [Parameter]
+    public MediaDto? Media { get; set; }
+
+    [Parameter]
+    public string? ErrorMessage { get; set; }
+}
