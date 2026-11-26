@@ -7,15 +7,21 @@
                   rows="5"
                   value="@Value"
                   @oninput="OnInput"
-                  required="@Required"></textarea>
+                  required="@Required"
+                  aria-invalid="@HasError"
+                  aria-describedby="@ErrorId"></textarea>
     }
     else
     {
         <input id="@Id"
                value="@Value"
                @oninput="OnInput"
-               required="@Required" />
+               required="@Required"
+               aria-invalid="@HasError"
+               aria-describedby="@ErrorId" />
     }
+
+    <InlineError Id="@ErrorId" Message="@Error" />
 </div>
 
 @code {
@@ -36,6 +42,13 @@
 
     [Parameter]
     public bool Required { get; set; } = true;
+
+    [Parameter]
+    public string? Error { get; set; }
+
+    private bool HasError => !string.IsNullOrEmpty(Error);
+
+    private string? ErrorId => HasError ? $"{Id}-error" : null;
 
     private Task OnInput(ChangeEventArgs args)
     {

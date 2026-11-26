@@ -152,7 +152,7 @@ public class HttpMediaService(HttpClient http)
             {
                 Errors = new()
                 {
-                    "The server reply did not confirm a pending request. Check My requests before retrying."
+                    "We could not confirm that your submission was saved. Please try again in a moment."
                 }
             };
         }

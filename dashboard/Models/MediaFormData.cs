@@ -14,21 +14,21 @@ public class MediaFormData
 
     public HashSet<string> TechnologyTypes { get; set; } = new();
 
-    public List<string> Validate(
+    public Dictionary<string, string> Validate(
         string? fileName,
         long fileSize,
         IReadOnlyList<MediaUploadRuleDto> rules,
         IEnumerable<string> knownTypes,
         bool requireFile = true)
     {
-        List<string> errors = new();
+        Dictionary<string, string> errors = new();
 
         // Add requires a file. Edit may retain the existing file.
         if (string.IsNullOrWhiteSpace(fileName))
         {
             if (requireFile)
             {
-                errors.Add("Choose a picture, video or 3D model.");
+                errors["file"] = "Choose a picture, video or 3D model.";
             }
         }
         else
@@ -39,21 +39,21 @@ public class MediaFormData
         // At least one available technology must be selected.
         if (TechnologyTypes.Count == 0)
         {
-            errors.Add("Select at least one technology.");
+            errors["technologies"] = "Select at least one technology.";
         }
 
         HashSet<string> known = knownTypes.ToHashSet();
 
         if (TechnologyTypes.Any(type => !known.Contains(type)))
         {
-            errors.Add(
-                "One or more technologies are no longer available. " +
-                "Reload the options and select again.");
+            errors.TryAdd(
+                "technologies",
+                "One or more chosen technologies are no longer available. Use Try again above and choose again.");
         }
 
-        Required(TitleEn, "English title", errors);
-        Required(TitleEs, "Spanish title", errors);
-        Required(TitleFr, "French title", errors);
+        Required(TitleEn, "title-en", "Enter the English title.", errors);
+        Required(TitleEs, "title-es", "Enter the Spanish title.", errors);
+        Required(TitleFr, "title-fr", "Enter the French title.", errors);
 
         // Descriptions are optional, but must be complete if supplied.
         bool hasDescription =
@@ -63,9 +63,9 @@ public class MediaFormData
 
         if (hasDescription)
         {
-            Required(DescriptionEn, "English description", errors);
-            Required(DescriptionEs, "Spanish description", errors);
-            Required(DescriptionFr, "French description", errors);
+            Required(DescriptionEn, "description-en", "Enter the English description.", errors);
+            Required(DescriptionEs, "description-es", "Enter the Spanish description.", errors);
+            Required(DescriptionFr, "description-fr", "Enter the French description.", errors);
         }
 
         return errors;
@@ -75,18 +75,18 @@ public class MediaFormData
         string fileName,
         long fileSize,
         IReadOnlyList<MediaUploadRuleDto> rules,
-        List<string> errors)
+        Dictionary<string, string> errors)
     {
         if (fileSize <= 0)
         {
-            errors.Add("The selected file is empty.");
+            errors.TryAdd("file", "The selected file is empty.");
         }
 
         if (rules.Count == 0)
         {
-            errors.Add(
-                "Upload settings are unavailable. " +
-                "Load them before submitting.");
+            errors.TryAdd(
+                "file",
+                "The form is not ready yet. Use Try again above before submitting.");
 
             return;
         }
@@ -95,16 +95,17 @@ public class MediaFormData
 
         if (rule is null)
         {
-            errors.Add(
-                "Unsupported file format. Choose one of the formats " +
-                "listed above the file picker.");
+            errors.TryAdd(
+                "file",
+                "This file type is not supported. Choose one of the file types listed above.");
 
             return;
         }
 
         if (fileSize > rule.MaxBytes)
         {
-            errors.Add(
+            errors.TryAdd(
+                "file",
                 $"The selected file is too large. " +
                 $"The limit for {rule.MediaType} is " +
                 $"{rule.MaxBytes / 1048576d:0.##} MiB.");
@@ -128,12 +129,13 @@ public class MediaFormData
 
     private static void Required(
         string? value,
-        string field,
-        List<string> errors)
+        string key,
+        string message,
+        Dictionary<string, string> errors)
     {
         if (string.IsNullOrWhiteSpace(value))
         {
-            errors.Add($"Enter the {field}.");
+            errors[key] = message;
         }
     }
 }

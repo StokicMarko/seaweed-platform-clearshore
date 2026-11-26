@@ -37,3 +37,10 @@ textarea:focus-visible {
     outline-offset: 3px;
     border-color: #2878c7;
 }
+
+
+input[aria-invalid="true"],
+textarea[aria-invalid="true"] {
+    border-color: #c0392b;
+    border-width: 2px;
+}

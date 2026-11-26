@@ -21,7 +21,7 @@
                 @if (Rules.Count == 0)
                 {
                     <span>
-                        Upload settings must load before choosing a file.
+                        The allowed file types are not available yet.
                     </span>
                 }
 
@@ -61,9 +61,7 @@
 
                 @if (!string.IsNullOrEmpty(fileError))
                 {
-                    <p class="file-error" role="alert">
-                        @fileError
-                    </p>
+                    <InlineError Message="@fileError" />
                 }
                 else if (!string.IsNullOrEmpty(previewUrl))
                 {
@@ -72,6 +70,11 @@
                         ContentType="@previewContentType"
                         FileName="@selectedFile.Name" />
                 }
+            }
+
+            @if (string.IsNullOrEmpty(fileError))
+            {
+                <InlineError Message="@ErrorFor("file")" />
             }
         </div>
 
@@ -84,8 +87,8 @@
             @if (Technologies.Count == 0)
             {
                 <p class="helper">
-                    No technology choices are loaded.
-                    Use Reload options above.
+                    No technologies are available yet.
+                    Use Try again above.
                 </p>
             }
 
@@ -103,6 +106,8 @@
                     </label>
                 }
             </div>
+
+            <InlineError Message="@ErrorFor("technologies")" />
         </fieldset>
 
     </div>
@@ -110,15 +115,15 @@
     @* Each language occupies one full-width row. *@
     <div class="language-sections">
 
-        <LanguageSection Legend="English" Code="en"
+        <LanguageSection Errors="FieldErrors" Legend="English" Code="en"
                          @bind-Title="Data.TitleEn"
                          @bind-Description="Data.DescriptionEn" />
 
-        <LanguageSection Legend="Español" Code="es"
+        <LanguageSection Errors="FieldErrors" Legend="Español" Code="es"
                          @bind-Title="Data.TitleEs"
                          @bind-Description="Data.DescriptionEs" />
 
-        <LanguageSection Legend="Français" Code="fr"
+        <LanguageSection Errors="FieldErrors" Legend="Français" Code="fr"
                          @bind-Title="Data.TitleFr"
                          @bind-Description="Data.DescriptionFr" />
 
@@ -148,6 +153,10 @@
     public bool Busy { get; set; }
 
     [Parameter]
+    public IReadOnlyDictionary<string, string> FieldErrors { get; set; }
+        = new Dictionary<string, string>();
+
+    [Parameter]
     public EventCallback<IBrowserFile?> FileChanged { get; set; }
 
     private InputFile? fileInput;
@@ -165,6 +174,13 @@
             ",",
             Rules.SelectMany(rule => rule.AllowedExtensions)
                 .Distinct());
+
+    private string? ErrorFor(string key)
+    {
+        return FieldErrors.TryGetValue(key, out string? message)
+            ? message
+            : null;
+    }
 
     private static string DisplayType(string type)
     {
@@ -199,12 +215,12 @@
         if (Rules.Count == 0)
         {
             fileError =
-                "Cannot validate this file because upload settings have not loaded. Start WebApi, then click Reload options.";
+                "This file cannot be checked yet because the form is not ready. Use Try again above.";
         }
         else if (selectedRule is null)
         {
             fileError =
-                "Unsupported file format. Choose one of the formats listed above.";
+                "This file type is not supported. Choose one of the file types listed above.";
         }
         else if (selectedFile.Size == 0)
         {
@@ -256,7 +272,7 @@
         catch (JSException)
         {
             fileError ??=
-                "The preview could not be displayed. Select the file again.";
+                "The preview could not be shown. Choose the file again.";
         }
     }
 

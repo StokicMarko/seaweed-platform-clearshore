@@ -66,12 +66,12 @@ public static class ApiErrorReader
                 HttpStatusCode.RequestEntityTooLarge)
             {
                 errors.Add(
-                    "The server rejected the upload because it is too large. Check the displayed file limit.");
+                    "The file is too large to upload. Choose a smaller file.");
             }
             else
             {
                 errors.Add(
-                    $"The submission could not be confirmed (HTTP {(int)response.StatusCode}). Check My requests before retrying.");
+                    "Something went wrong and your submission may not have been saved. Please try again in a moment.");
             }
         }
 

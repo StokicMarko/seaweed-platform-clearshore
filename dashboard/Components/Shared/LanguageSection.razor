@@ -5,14 +5,16 @@
                Label="Title (required)"
                Required="true"
                Value="@Title"
-               ValueChanged="TitleChanged" />
+               ValueChanged="TitleChanged"
+               Error="@ErrorFor("title")" />
 
     <FormField Id="@($"description-{Code}")"
                Label="Description (optional)"
                Required="false"
                Multiline="true"
                Value="@Description"
-               ValueChanged="DescriptionChanged" />
+               ValueChanged="DescriptionChanged"
+               Error="@ErrorFor("description")" />
 </fieldset>
 
 @code {
@@ -33,4 +35,15 @@
 
     [Parameter]
     public EventCallback<string> DescriptionChanged { get; set; }
+
+    [Parameter]
+    public IReadOnlyDictionary<string, string> Errors { get; set; }
+        = new Dictionary<string, string>();
+
+    private string? ErrorFor(string field)
+    {
+        return Errors.TryGetValue($"{field}-{Code}", out string? message)
+            ? message
+            : null;
+    }
 }
