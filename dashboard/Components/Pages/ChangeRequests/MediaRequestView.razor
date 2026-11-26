@@ -2,6 +2,7 @@
 @using ApiContracts.ChangeRequests
 @using Dashboard.Services.ChangeRequests
 @inject IChangeRequestReviewService ReviewService
+@inject IMediaReader MediaReader
 
 <section aria-labelledby="media-request-heading">
     <h2 id="media-request-heading">Proposed media change</h2>
@@ -17,6 +18,10 @@
             The media and its file remain unchanged
             until the Main Admin approves this request.
         </p>
+
+        <CurrentMediaPanel Heading="Item to be deleted"
+                           Media="@currentMedia"
+                           ErrorMessage="@currentMediaError" />
     }
     else if (payloadError is not null)
     {
@@ -27,6 +32,13 @@
     }
     else if (payload is not null)
     {
+        @if (IsUpdate)
+        {
+            <CurrentMediaPanel Heading="Currently published"
+                               Media="@currentMedia"
+                               ErrorMessage="@currentMediaError" />
+        }
+
         <h3>Technologies</h3>
 
         <ul>
@@ -103,17 +115,23 @@
     private MediaPayloadDto? payload;
     private string? payloadError;
 
+    private MediaDto? currentMedia;
+    private string? currentMediaError;
+
     private bool IsDelete =>
         string.Equals(
             Request.Type,
             "Delete",
             StringComparison.OrdinalIgnoreCase);
 
-    private bool KeepsCurrentFile =>
+    private bool IsUpdate =>
         string.Equals(
             Request.Type,
             "Update",
-            StringComparison.OrdinalIgnoreCase) &&
+            StringComparison.OrdinalIgnoreCase);
+
+    private bool KeepsCurrentFile =>
+        IsUpdate &&
         payload is not null &&
         payload.MediaType is null &&
         payload.StoredFileName is null &&
@@ -135,10 +153,7 @@
                 Request.Type,
                 "Create",
                 StringComparison.OrdinalIgnoreCase) &&
-            !string.Equals(
-                Request.Type,
-                "Update",
-                StringComparison.OrdinalIgnoreCase))
+            !IsUpdate)
         {
             payloadError = "The media request type is not supported.";
             return;
@@ -168,6 +183,30 @@
         {
             payloadError =
                 "The media payload does not match MediaPayloadDto.";
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        currentMedia = null;
+        currentMediaError = null;
+
+        // Update and Delete point at a published item. Load it so the Main Admin sees what is changing.
+        if (Request.TargetId is null || !(IsDelete || IsUpdate))
+        {
+            return;
+        }
+
+        try
+        {
+            currentMedia = await MediaReader.GetSingleAsync(Request.TargetId.Value);
+        }
+        catch (Exception ex) when (
+            ex is HttpRequestException or
+            System.Text.Json.JsonException or
+            InvalidOperationException)
+        {
+            currentMediaError = "The published item could not be loaded. It may no longer exist.";
         }
     }
 
