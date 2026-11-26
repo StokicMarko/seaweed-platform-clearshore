@@ -1,0 +1,219 @@
+@using System.Text.Json
+@using ApiContracts.ChangeRequests
+@using Dashboard.Services.ChangeRequests
+@inject IChangeRequestReviewService ReviewService
+@inject IMediaReader MediaReader
+
+<section aria-labelledby="media-request-heading">
+    <h2 id="media-request-heading">Proposed media change</h2>
+
+    @if (IsDelete)
+    {
+        <p>
+            Delete the published media item with
+            Id <strong>@Request.TargetId</strong>.
+        </p>
+
+        <p>
+            The media and its file remain unchanged
+            until the Main Admin approves this request.
+        </p>
+
+        <CurrentMediaPanel Heading="Item to be deleted"
+                           Media="@currentMedia"
+                           ErrorMessage="@currentMediaError" />
+    }
+    else if (payloadError is not null)
+    {
+        <StatusMessage IsError="true"
+                       Title="The proposed media data could not be displayed.">
+            <p>@payloadError</p>
+        </StatusMessage>
+    }
+    else if (payload is not null)
+    {
+        @if (IsUpdate)
+        {
+            <CurrentMediaPanel Heading="Currently published"
+                               Media="@currentMedia"
+                               ErrorMessage="@currentMediaError" />
+        }
+
+        <h3>Technologies</h3>
+
+        <ul>
+            @foreach (string type in payload.TechnologyTypes)
+            {
+                <li>@type</li>
+            }
+        </ul>
+
+        <fieldset>
+            <legend>English</legend>
+            <h3>Title</h3>
+            <p>@payload.Title.En</p>
+
+            <h3>Description</h3>
+            <p style="white-space: pre-wrap;">@DescriptionText(payload.Description?.En)</p>
+        </fieldset>
+
+        <fieldset>
+            <legend>Español</legend>
+            <h3>Title</h3>
+            <p>@payload.Title.Es</p>
+
+            <h3>Description</h3>
+            <p style="white-space: pre-wrap;">@DescriptionText(payload.Description?.Es)</p>
+        </fieldset>
+
+        <fieldset>
+            <legend>Français</legend>
+            <h3>Title</h3>
+            <p>@payload.Title.Fr</p>
+
+            <h3>Description</h3>
+            <p style="white-space: pre-wrap;">@DescriptionText(payload.Description?.Fr)</p>
+        </fieldset>
+
+        <h3>File</h3>
+
+        @if (KeepsCurrentFile)
+        {
+            <p>The current media file will be kept.</p>
+        }
+        else
+        {
+            <dl>
+                <dt>Original file name</dt>
+                <dd>@payload.OriginalFileName</dd>
+
+                <dt>Media type</dt>
+                <dd>@payload.MediaType</dd>
+
+                <dt>Content type</dt>
+                <dd>@payload.ContentType</dd>
+            </dl>
+
+            @if (!string.IsNullOrEmpty(payload.StoredFileName))
+            {
+                <MediaFilePreview
+                    Url="@ReviewService.GetFileUrl(Request.Id, payload.StoredFileName)"
+                    ContentType="@(payload.ContentType ?? "")"
+                    FileName="@(payload.OriginalFileName ?? "")" />
+            }
+        }
+    }
+</section>
+
+@code {
+    [Parameter, EditorRequired]
+    public ChangeRequestDetailDto Request { get; set; } = default!;
+
+    private static readonly JsonSerializerOptions JsonOptions =
+        new(JsonSerializerDefaults.Web);
+
+    private MediaPayloadDto? payload;
+    private string? payloadError;
+
+    private MediaDto? currentMedia;
+    private string? currentMediaError;
+
+    private bool IsDelete =>
+        string.Equals(
+            Request.Type,
+            "Delete",
+            StringComparison.OrdinalIgnoreCase);
+
+    private bool IsUpdate =>
+        string.Equals(
+            Request.Type,
+            "Update",
+            StringComparison.OrdinalIgnoreCase);
+
+    private bool KeepsCurrentFile =>
+        IsUpdate &&
+        payload is not null &&
+        payload.MediaType is null &&
+        payload.StoredFileName is null &&
+        payload.OriginalFileName is null &&
+        payload.ContentType is null;
+
+    protected override void OnParametersSet()
+    {
+        payload = null;
+        payloadError = null;
+
+        // Delete requests do not carry the Create/Update payload.
+        if (IsDelete)
+        {
+            return;
+        }
+
+        if (!string.Equals(
+                Request.Type,
+                "Create",
+                StringComparison.OrdinalIgnoreCase) &&
+            !IsUpdate)
+        {
+            payloadError = "The media request type is not supported.";
+            return;
+        }
+
+        if (Request.Payload is not JsonElement json ||
+            json.ValueKind != JsonValueKind.Object)
+        {
+            payloadError = "The request has no valid media payload.";
+            return;
+        }
+
+        try
+        {
+            payload = json.Deserialize<MediaPayloadDto>(JsonOptions);
+
+            if (payload is null ||
+                payload.Title is null ||
+                payload.TechnologyTypes is null)
+            {
+                payload = null;
+                payloadError =
+                    "The media payload is missing required data.";
+            }
+        }
+        catch (JsonException)
+        {
+            payloadError =
+                "The media payload does not match MediaPayloadDto.";
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        currentMedia = null;
+        currentMediaError = null;
+
+        // Update and Delete point at a published item. Load it so the Main Admin sees what is changing.
+        if (Request.TargetId is null || !(IsDelete || IsUpdate))
+        {
+            return;
+        }
+
+        try
+        {
+            currentMedia = await MediaReader.GetSingleAsync(Request.TargetId.Value);
+        }
+        catch (Exception ex) when (
+            ex is HttpRequestException or
+            System.Text.Json.JsonException or
+            InvalidOperationException)
+        {
+            currentMediaError = "The published item could not be loaded. It may no longer exist.";
+        }
+    }
+
+    private static string DescriptionText(string? value)
+    {
+        return string.IsNullOrWhiteSpace(value)
+            ? "No description."
+            : value;
+    }
+}

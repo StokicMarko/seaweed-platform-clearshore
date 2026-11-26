@@ -1,5 +1,4 @@
 ﻿using System.Text.Json;
-using System.Text.Json.Serialization;
 using Entities;
 using RepositoryContracts;
 
@@ -10,17 +9,11 @@ public class ChangeRequestSubmitter(
     IFileRepository fileRepository,
     ICurrentUser currentUser) : IChangeRequestSubmitter
 {
-    // The payload is stored as JSON text and the Java side reads it later.
-    // Enums are written as names (for example "Video").
-    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
-    {
-        Converters = { new JsonStringEnumConverter() }
-    };
-
     public async Task<ChangeRequest> SubmitAsync<TPayload>(
         ChangeTarget target,
         ChangeType type,
-        TPayload payload,
+        int? targetId,
+        TPayload? payload,
         IReadOnlyCollection<string> storedFileNames)
     {
         try
@@ -29,7 +22,8 @@ public class ChangeRequestSubmitter(
             {
                 TargetType = target,
                 Type = type,
-                PayloadJson = JsonSerializer.Serialize(payload, JsonOptions),
+                TargetId = targetId,
+                PayloadJson = payload is null ? null : JsonSerializer.Serialize(payload, ChangeRequestJson.Options),
                 Status = ChangeStatus.Pending,
                 RequestedBy = currentUser.Id
             };

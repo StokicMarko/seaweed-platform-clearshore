@@ -3,12 +3,14 @@
 
     <FormField Id="@($"title-{Code}")"
                Label="Title (required)"
+               Required="true"
                Value="@Title"
                ValueChanged="TitleChanged"
                Error="@ErrorFor("title")" />
 
     <FormField Id="@($"description-{Code}")"
-               Label="Description (required)"
+               Label="Description (optional)"
+               Required="false"
                Multiline="true"
                Value="@Description"
                ValueChanged="DescriptionChanged"

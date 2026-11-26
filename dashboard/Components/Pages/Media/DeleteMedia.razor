@@ -1,0 +1,225 @@
+@page "/media/{Id:int}/delete"
+@using ApiContracts.ChangeRequests
+@using ApiContracts.Media
+@using Dashboard.Components.Shared
+@using Dashboard.Services.Media
+@inject IMediaReader MediaReader
+@inject IMediaWriter MediaWriter
+@implements IDisposable
+
+<PageTitle>Delete media</PageTitle>
+
+<main class="delete-media">
+    <header>
+        <p>CONTENT OPERATIONS</p>
+        <h1>Delete media</h1>
+        <a href="media">Back to Manage media</a>
+    </header>
+
+    <section aria-labelledby="confirmation-heading">
+        <h2 id="confirmation-heading">Confirm deletion request</h2>
+
+        <p>
+            Deletion creates a pending change request.
+            The published media and its file remain available
+            until the Main Admin approves the request.
+        </p>
+
+        @if (loading)
+        {
+            <p role="status">Loading media...</p>
+        }
+
+        @if (errorMessage is not null)
+        {
+            <StatusMessage IsError="true"
+                           Title="The media details could not be loaded.">
+                <p>@errorMessage</p>
+            </StatusMessage>
+
+            <button type="button"
+                    @onclick="LoadAsync"
+                    disabled="@loading">
+                Try again
+            </button>
+        }
+
+        @if (media is not null)
+        {
+            <dl>
+                <dt>Id</dt>
+                <dd>@media.Id</dd>
+
+                <dt>Title (EN)</dt>
+                <dd>@media.Title.En</dd>
+
+                <dt>Title (ES)</dt>
+                <dd>@media.Title.Es</dd>
+
+                <dt>Title (FR)</dt>
+                <dd>@media.Title.Fr</dd>
+
+                <dt>Type</dt>
+                <dd>@media.MediaType</dd>
+
+                <dt>Technologies</dt>
+                <dd>
+                    @string.Join(
+                        ", ",
+                        media.Technologies.Select(item => item.Type))
+                </dd>
+
+                <dt>File</dt>
+                <dd>@media.FileName</dd>
+            </dl>
+        }
+
+        @if (errors.Count > 0)
+        {
+            <StatusMessage IsError="true"
+                           Title="The deletion request could not be sent:"
+                           Errors="@errors" />
+        }
+
+        @if (savedRequest is not null)
+        {
+            <StatusMessage Title="@($"Deletion submitted for approval — request #{savedRequest.Id}")">
+                <p>
+                    Status: <StatusBadge Status="Pending" />
+                    The media stays published until the Main Admin approves this request.
+                </p>
+                <p><a href="media">Back to Manage media</a></p>
+            </StatusMessage>
+        }
+
+        <footer>
+            <button type="button"
+                    @onclick="SubmitAsync"
+                    disabled="@(loading || media is null || submitting || savedRequest is not null)">
+                @(submitting ? "Submitting..." : "Submit deletion request")
+            </button>
+
+            <a href="media">Cancel</a>
+        </footer>
+    </section>
+</main>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private readonly CancellationTokenSource lifetime = new();
+
+    private MediaDto? media;
+    private string? errorMessage;
+    private ChangeRequestDto? savedRequest;
+    private List<string> errors = new();
+    private bool loading;
+    private bool submitting;
+    private int loadVersion;
+
+    protected override Task OnParametersSetAsync()
+    {
+        return LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        int version = ++loadVersion;
+        int requestedId = Id;
+
+        loading = true;
+        media = null;
+        errorMessage = null;
+        savedRequest = null;
+        errors = new();
+
+        try
+        {
+            MediaDto loadedMedia = await MediaReader.GetSingleAsync(
+                requestedId,
+                lifetime.Token);
+
+            if (version == loadVersion &&
+                !lifetime.IsCancellationRequested)
+            {
+                media = loadedMedia;
+            }
+        }
+        catch (OperationCanceledException)
+            when (lifetime.IsCancellationRequested)
+        {
+            // Leaving the page cancels its request.
+        }
+        catch (Exception ex) when (
+            ex is HttpRequestException or
+            System.Text.Json.JsonException or
+            InvalidOperationException or
+            OperationCanceledException)
+        {
+            if (version == loadVersion &&
+                !lifetime.IsCancellationRequested)
+            {
+                errorMessage =
+                    "Check that WebApi, the Data Server and the " +
+                    "database are available, then select Try again.";
+            }
+        }
+        finally
+        {
+            if (version == loadVersion)
+            {
+                loading = false;
+            }
+        }
+    }
+
+    private async Task SubmitAsync()
+    {
+        if (media is null ||
+            submitting ||
+            savedRequest is not null ||
+            lifetime.IsCancellationRequested)
+        {
+            return;
+        }
+
+        errors = new();
+        submitting = true;
+
+        try
+        {
+            MediaSubmissionResult result = await MediaWriter.RequestDeleteAsync(
+                Id,
+                lifetime.Token);
+
+            if (result.Request is not null)
+            {
+                savedRequest = result.Request;
+            }
+            else
+            {
+                errors = result.Errors;   // includes "already has an open change request" (409)
+            }
+        }
+        catch (Exception ex) when (
+            ex is HttpRequestException or
+            TaskCanceledException)
+        {
+            if (!lifetime.IsCancellationRequested)
+            {
+                errors = new() { "The request could not be sent. Try again." };
+            }
+        }
+        finally
+        {
+            submitting = false;
+        }
+    }
+
+    public void Dispose()
+    {
+        lifetime.Cancel();
+        lifetime.Dispose();
+    }
+}

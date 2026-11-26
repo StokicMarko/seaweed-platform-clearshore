@@ -11,7 +11,10 @@ namespace WebApi.Controllers;
 
 [ApiController]
 [Route("api/media")]
-public class MediaController(IMediaRepository mediaRepository, IMediaSubmissionService submissionService) : ControllerBase
+public class MediaController(
+    IMediaRepository mediaRepository,
+    IMediaSubmissionService submissionService,
+    IMediaChangeService changeService) : ControllerBase
 {
     [HttpGet]
     public async Task<ActionResult<List<MediaDto>>> GetMany([FromQuery] string? technology)
@@ -34,8 +37,8 @@ public class MediaController(IMediaRepository mediaRepository, IMediaSubmissionS
         Response.ContentType = media.ContentType;
         await mediaRepository.CopyFileToAsync(id, Response.Body, HttpContext.RequestAborted);
     }
-    
-    
+
+
     [HttpPost]
     [Consumes("multipart/form-data")]
     public async Task<ActionResult<ChangeRequestDto>> Add([FromForm] AddMediaForm form,
@@ -53,5 +56,46 @@ public class MediaController(IMediaRepository mediaRepository, IMediaSubmissionS
         return Accepted(DtoMapper.ToDto(request));
     }
 
+    [HttpGet("{id:int}/change-availability")]
+    public async Task<IActionResult> CheckChangeAvailability([FromRoute] int id)
+    {
+        await changeService.EnsureCanChangeAsync(id);
+        return Ok();
+    }
+
+    [HttpPut("{id:int}")]
+    [Consumes("multipart/form-data")]
+    public async Task<ActionResult<ChangeRequestDto>> Update(
+        [FromRoute] int id, [FromForm] UpdateMediaForm form, CancellationToken cancellationToken)
+    {
+        Stream? content = form.File?.OpenReadStream();
+        try
+        {
+            ChangeRequest request = await changeService.SubmitUpdateAsync(
+                id, UpdateMediaMapper.ToCommand(form, content), cancellationToken);
+            return Accepted(DtoMapper.ToDto(request));
+        }
+        finally
+        {
+            if (content is not null)
+            {
+                await content.DisposeAsync();
+            }
+        }
+    }
+
+    [HttpDelete("{id:int}")]
+    public async Task<ActionResult<ChangeRequestDto>> Delete([FromRoute] int id)
+    {
+        ChangeRequest request = await changeService.SubmitDeleteAsync(id);
+        return Accepted(DtoMapper.ToDto(request));
+    }
     
+    // Which media items have an open request (pending or returned). The list uses it to show a badge and to block Edit and Delete.
+    [HttpGet("open-requests")]
+    public async Task<ActionResult<List<OpenMediaRequestDto>>> GetOpenRequests()
+    {
+        List<ChangeRequest> requests = await changeService.GetOpenRequestsAsync();
+        return requests.Select(DtoMapper.ToOpenMediaRequestDto).ToList();
+    }
 }
