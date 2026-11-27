@@ -1,3 +1,21 @@
+-- Development-only staff user matching CurrentUser.Id = 1.
+-- Deliberately unusable password hash; never a real password.
+INSERT INTO app_user (id, username, password_hash, full_name, role)
+VALUES (
+           1,
+           'seed-staff',
+           'NOT_A_REAL_PASSWORD_HASH',
+           'Development Staff',
+           'STAFF'
+       );
+
+-- Ensure the next automatically generated user ID follows the seeded IDs.
+SELECT setval(
+               pg_get_serial_sequence('app_user', 'id'),
+               (SELECT MAX(id) FROM app_user),
+               true
+       );
+
 INSERT INTO technology (type)
 VALUES ('mesh-boom-hd');
 
