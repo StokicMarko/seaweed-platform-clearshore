@@ -3,6 +3,7 @@
 @using ApiContracts.Media
 @using Dashboard.Components.Shared
 @using Dashboard.Services.Media
+@using Dashboard.Services.Loading
 @inject IMediaReader MediaReader
 @inject IMediaWriter MediaWriter
 @implements IDisposable
@@ -109,14 +110,15 @@
     public int Id { get; set; }
 
     private readonly CancellationTokenSource lifetime = new();
+    private readonly PageLoader<MediaDto> pageLoader = new();
 
-    private MediaDto? media;
-    private string? errorMessage;
+    private MediaDto? media => pageLoader.Data;
+    private string? errorMessage => pageLoader.ErrorMessage;
+    private bool loading => pageLoader.IsLoading;
+
     private ChangeRequestDto? savedRequest;
     private List<string> errors = new();
-    private bool loading;
     private bool submitting;
-    private int loadVersion;
 
     protected override Task OnParametersSetAsync()
     {
@@ -125,58 +127,22 @@
 
     private async Task LoadAsync()
     {
-        int version = ++loadVersion;
         int requestedId = Id;
 
-        loading = true;
-        media = null;
-        errorMessage = null;
         savedRequest = null;
         errors = new();
 
-        try
-        {
-            MediaDto loadedMedia = await MediaReader.GetSingleAsync(
+        await pageLoader.LoadAsync(
+            cancellationToken => MediaReader.GetSingleAsync(
                 requestedId,
-                lifetime.Token);
-
-            if (version == loadVersion &&
-                !lifetime.IsCancellationRequested)
-            {
-                media = loadedMedia;
-            }
-        }
-        catch (OperationCanceledException)
-            when (lifetime.IsCancellationRequested)
-        {
-            // Leaving the page cancels its request.
-        }
-        catch (Exception ex) when (
-            ex is HttpRequestException or
-            System.Text.Json.JsonException or
-            InvalidOperationException or
-            OperationCanceledException)
-        {
-            if (version == loadVersion &&
-                !lifetime.IsCancellationRequested)
-            {
-                errorMessage =
-                    "Check that WebApi, the Data Server and the " +
-                    "database are available, then select Try again.";
-            }
-        }
-        finally
-        {
-            if (version == loadVersion)
-            {
-                loading = false;
-            }
-        }
+                cancellationToken),
+            "The media details could not be loaded. Please try again.");
     }
 
     private async Task SubmitAsync()
     {
-        if (media is null ||
+        if (loading ||
+            media is null ||
             submitting ||
             savedRequest is not null ||
             lifetime.IsCancellationRequested)
@@ -189,9 +155,10 @@
 
         try
         {
-            MediaSubmissionResult result = await MediaWriter.RequestDeleteAsync(
-                Id,
-                lifetime.Token);
+            MediaSubmissionResult result =
+                await MediaWriter.RequestDeleteAsync(
+                    Id,
+                    lifetime.Token);
 
             if (result.Request is not null)
             {
@@ -199,7 +166,7 @@
             }
             else
             {
-                errors = result.Errors;   // includes "already has an open change request" (409)
+                errors = result.Errors;
             }
         }
         catch (Exception ex) when (
@@ -208,7 +175,10 @@
         {
             if (!lifetime.IsCancellationRequested)
             {
-                errors = new() { "The request could not be sent. Try again." };
+                errors = new()
+                {
+                    "The request could not be sent. Try again."
+                };
             }
         }
         finally
@@ -219,6 +189,8 @@
 
     public void Dispose()
     {
+        pageLoader.Dispose();
+
         lifetime.Cancel();
         lifetime.Dispose();
     }
