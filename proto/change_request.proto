@@ -22,10 +22,14 @@ service ChangeRequestData {
   //takes id returns one request. NOT_FOUND = id does not exist.
   rpc GetSingle (ChangeRequestId) returns (ChangeRequest);
 
-  rpc UpdateStatus (UpdateChangeRequestStatusRequest) returns (ChangeRequest);
+  rpc UpdateStatus (UpdateChangeRequestStatusRequest) returns (ChangeRequest); //RETURN (Pending → Returned)
+
+   // Replaces the payload and status of one request.
+  rpc Update (UpdateChangeRequestRequest) returns (ChangeRequest); //RESUBMIT (Returned → Pending)
 
     // Deletes req (after approve and after decline).
   rpc Delete (ChangeRequestId) returns (google.protobuf.Empty);
+
 }
 
 enum ChangeTarget {
@@ -69,6 +73,8 @@ message GetManyChangeRequestsRequest {
   optional ChangeTarget target_type = 1;
   optional int32 target_id = 2;
   optional ChangeStatus status = 3;
+  // Only the requests submitted by this user (MINEEE).
+  optional int32 requested_by = 4;
 }
 
 message ChangeRequestList { //grpcs takes one, returns one, wrapped message
@@ -80,4 +86,10 @@ message ChangeRequestList { //grpcs takes one, returns one, wrapped message
 message UpdateChangeRequestStatusRequest {
   int32 id = 1;
   ChangeStatus status = 2;
+}
+
+message UpdateChangeRequestRequest {
+  int32 id = 1;
+  string payload_json = 2;
+  ChangeStatus status = 3;
 }
