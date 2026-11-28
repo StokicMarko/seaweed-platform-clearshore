@@ -5,7 +5,7 @@ namespace GrpcRepositories;
 
 /// Stores change requests on the Java data server over gRPC.
 public class ChangeRequestGrpcRepository(Generated.ChangeRequestData.ChangeRequestDataClient client)
-    : IChangeRequestRepository
+    : IChangeRequestRepository, IMyRequestsRepository
 {
     public Task<ChangeRequest> CreateAsync(ChangeRequest request) =>
         GrpcCall.RunAsync(async () =>
@@ -42,4 +42,11 @@ public class ChangeRequestGrpcRepository(Generated.ChangeRequestData.ChangeReque
         {
             await client.DeleteAsync(new Generated.ChangeRequestId { Id = id });
         });
+    
+    // The gRPC calls are written in #175.
+    public Task<List<ChangeRequest>> GetByRequesterAsync(int requestedBy) =>
+        throw new NotImplementedException("Built in #175.");
+
+    public Task<ChangeRequest> UpdateAsync(int id, string payloadJson, ChangeStatus status) =>
+        throw new NotImplementedException("Built in #175.");
 }
