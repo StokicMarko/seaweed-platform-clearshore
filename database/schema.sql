@@ -63,7 +63,9 @@ CREATE TABLE news_item
     text_es      TEXT         NOT NULL,
     text_fr      TEXT         NOT NULL,
     published_at TIMESTAMPTZ  NOT NULL DEFAULT now(),
-    updated_at   TIMESTAMPTZ  NOT NULL DEFAULT now()
+    updated_at   TIMESTAMPTZ  NOT NULL DEFAULT now(),
+    -- Id of the approved request. No foreign key: the request is deleted after approval.
+    source_request_id INT UNIQUE
 );
 
 -- ER: MediaFile. Belongs to one media item OR one news item, never both.
